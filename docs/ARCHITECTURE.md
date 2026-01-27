@@ -5,6 +5,7 @@
 - Offer deep links to YouTube timestamps for each performance.
 - Support community ratings/comments with moderation.
 - Maintain an ingestion pipeline for episode metadata and AI-assisted extraction.
+- Keep contracts between frontend, backend, and worker explicit via shared types.
 
 ## Monorepo layout
 - `apps/web`: Next.js frontend (public site + admin review UI).
@@ -31,6 +32,12 @@
 - **Admin APIs**: review queue operations, content moderation, manual corrections.
 - **Ingestion APIs/services** (used by `apps/worker`): create/update episodes, guests, contestants, and performances based on ingestion output.
 
+### Service boundaries
+- `apps/web` consumes a typed API client and renders UI routes described above.
+- `apps/worker` performs ingestion and only writes through the database package/service layer.
+- `packages/db` is the single source of truth for schema, migrations, and query helpers.
+- `packages/shared` houses shared enums/types for API payloads, avoiding duplicated contract logic.
+
 ### Data flow
 1. **Ingestion** pulls raw episode metadata (YouTube, guest info) and produces extracted performance segments.
 2. **Worker** writes normalized data into the database (episodes, contestants, performances).
@@ -45,3 +52,4 @@
 - Rate-limit ingestion to comply with upstream sources.
 - Track ingestion provenance and confidence scores.
 - Version API responses to protect the web UI from breaking changes.
+- Document authentication/authorization once the identity provider is chosen.

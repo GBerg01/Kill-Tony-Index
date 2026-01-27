@@ -1,5 +1,10 @@
 # Schema & Data Contracts
 
+## Conventions
+- IDs are UUIDs unless a natural key is explicitly documented.
+- `created_at`/`updated_at` timestamps use UTC ISO-8601.
+- `status` fields are enums to support moderation and review workflows.
+
 ## Core entities
 ### Episode
 - `id`
@@ -60,6 +65,12 @@
 - Contestant → Performances: one-to-many.
 - Performance → Ratings: one-to-many (unique per user).
 - Performance → Comments: one-to-many.
+
+## Status enums (draft)
+| Entity | Values | Notes |
+| --- | --- | --- |
+| Performance | `pending_review`, `approved`, `rejected` | Set by ingestion + admin review. |
+| Comment | `visible`, `flagged`, `removed` | Supports moderation queues. |
 
 ## Planned indexes
 - Episodes: `published_at`, `title` (search).

@@ -9,6 +9,13 @@
 - **API boundaries:** Separate read APIs for the web UI from ingestion/admin write APIs, with shared types to keep contracts stable.
 - **Data flow:** Ingestion pipeline writes to the database; web UI reads via API routes or a dedicated service layer; admin queue uses the same service layer with elevated permissions.
 
+### Decision template
+- **Decision:** <short description>
+- **Context:** <why now / what problem>
+- **Options considered:** <list>
+- **Outcome:** <what we chose>
+- **Follow-ups:** <next steps>
+
 ### Risks / Follow-ups
 - Confirm authentication strategy for user ratings/comments and admin review flows.
 - Decide hosting and deployment targets for web + worker.
