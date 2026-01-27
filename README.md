@@ -28,6 +28,12 @@ kill-tony-index/
 
 The core unit is a performance, which links a contestant to an episode and includes a YouTube timestamp. Performances are backed by AI extraction and can be reviewed in an admin queue.
 
+## Documentation
+
+- `docs/ARCHITECTURE.md`: system overview, routing plan, and API boundaries.
+- `docs/SCHEMA.md`: entity definitions and frontend data contract stubs.
+- `docs/PROJECT_LOG.md`: decision log and project scaffolding notes.
+
 ## Next steps
 
 - Implement the database schema in `packages/db`.
