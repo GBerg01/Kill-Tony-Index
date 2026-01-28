@@ -12,3 +12,8 @@ Stages:
 6. Admin review queue for low-confidence items
 
 The worker will write episodes, contestants, and performances into the database and attach raw transcript snippets for auditing.
+
+## Local development
+
+1. Copy `.env.example` to `.env` and set `DATABASE_URL`, `YOUTUBE_API_KEY`, and `YOUTUBE_CHANNEL_ID`.
+2. Run `pnpm --filter @killtony/worker dev` to execute the ingestion stub.

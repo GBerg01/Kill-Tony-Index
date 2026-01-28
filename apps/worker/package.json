@@ -1,0 +1,16 @@
+{
+  "name": "@killtony/worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@killtony/db": "0.0.0",
+    "@killtony/shared": "0.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
+  }
+}
