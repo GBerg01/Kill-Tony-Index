@@ -13,6 +13,19 @@
 - `packages/db`: database schema, migrations, and database client.
 - `packages/shared`: shared types/constants used across frontend and backend.
 
+## Recommended tech stack (cost-aware)
+- **Frontend:** Next.js (App Router) with React and TypeScript, hosted on Vercel or Cloudflare Pages.
+- **Backend/API:** Next.js Route Handlers for public read APIs and authenticated write APIs to keep infra simple.
+- **Database:** Postgres (Neon or Supabase) for reliability and free/low-cost tiers.
+- **ORM/migrations:** Prisma for schema + migrations with generated TypeScript types.
+- **Worker:** Node.js job runner (e.g., a lightweight cron on a small VM or managed scheduler) writing via `packages/db`.
+- **Caching/search:** Start with Postgres full-text search; add Redis or hosted search later if needed.
+
+## API layer clarification
+In this project, the “API layer” is the set of HTTP endpoints the frontend calls for data. We can host
+those endpoints inside Next.js using Route Handlers (so the API lives alongside the UI), which avoids
+running a separate backend service until scale demands it.
+
 ## Frontend plan (UI structure & routing)
 | Route | Purpose | Notes |
 | --- | --- | --- |

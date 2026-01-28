@@ -4,6 +4,7 @@
 - IDs are UUIDs unless a natural key is explicitly documented.
 - `created_at`/`updated_at` timestamps use UTC ISO-8601.
 - `status` fields are enums to support moderation and review workflows.
+- Primary datastore is Postgres.
 
 ## Core entities
 ### Episode

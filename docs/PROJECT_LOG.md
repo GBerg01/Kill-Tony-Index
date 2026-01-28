@@ -8,6 +8,7 @@
 - **UI structure:** Plan pages for home/search, episodes, contestants, performances, leaderboards, and admin review to cover MVP flows.
 - **API boundaries:** Separate read APIs for the web UI from ingestion/admin write APIs, with shared types to keep contracts stable.
 - **Data flow:** Ingestion pipeline writes to the database; web UI reads via API routes or a dedicated service layer; admin queue uses the same service layer with elevated permissions.
+- **Stack direction:** Use Next.js for the web UI and API routes, Postgres as the primary datastore, and Prisma for schema/migrations to keep cost low while staying reliable.
 
 ### Decision template
 - **Decision:** <short description>
