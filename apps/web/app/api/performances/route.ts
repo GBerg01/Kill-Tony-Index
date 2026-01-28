@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getDbPool, listPerformances } from "@killtony/db";
 
 import { performances } from "@/lib/mock-data";
+import { logError } from "@/lib/logger";
 
 export async function GET() {
   if (!process.env.DATABASE_URL) {
@@ -15,9 +16,12 @@ export async function GET() {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error("Failed to load performances", error);
+    logError("Failed to load performances", { error });
     return NextResponse.json(
-      { data: performances, error: { message: "Failed to load performances" } },
+      {
+        data: performances,
+        error: { message: "Failed to load performances", code: "PERFORMANCES_FETCH_FAILED" },
+      },
       { status: 500 }
     );
   }

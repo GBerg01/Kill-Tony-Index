@@ -7,6 +7,7 @@ export type ApiResponse<T> = {
 
 export type ApiError = {
   message: string;
+  code?: string;
 };
 
 export type EpisodesResponse = ApiResponse<Episode[]>;

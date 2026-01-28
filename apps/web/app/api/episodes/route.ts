@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getDbPool, listEpisodes } from "@killtony/db";
 
 import { episodes } from "@/lib/mock-data";
+import { logError } from "@/lib/logger";
 
 export async function GET() {
   if (!process.env.DATABASE_URL) {
@@ -15,9 +16,12 @@ export async function GET() {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error("Failed to load episodes", error);
+    logError("Failed to load episodes", { error });
     return NextResponse.json(
-      { data: episodes, error: { message: "Failed to load episodes" } },
+      {
+        data: episodes,
+        error: { message: "Failed to load episodes", code: "EPISODES_FETCH_FAILED" },
+      },
       { status: 500 }
     );
   }
