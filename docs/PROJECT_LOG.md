@@ -35,7 +35,8 @@
 - Added shared API error shape to standardize error payloads.
 - Added API error codes + shared logger helper for debugging.
 - Set Prisma as the canonical migration workflow and documented setup steps.
+- Added Docker-based local Postgres and a worker ingestion stub for YouTube metadata.
 
 ### Next steps
 - Add centralized logging strategy (structured logs + redaction).
-- Stand up local Postgres for ingestion pipeline tests.
+- Extend the worker pipeline to persist episodes into Postgres.

@@ -44,3 +44,8 @@ The core unit is a performance, which links a contestant to an episode and inclu
 ## Getting started
 
 This repo is currently scaffolded for the MVP. Each app/package contains a README with its responsibilities and planned implementation steps.
+
+## Local development
+
+- Start Postgres locally with `docker-compose up -d`.
+- Copy `.env.example` to `.env` and set `DATABASE_URL` (plus YouTube API settings if running the worker).
