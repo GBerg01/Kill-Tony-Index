@@ -1,0 +1,126 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @db.Uuid
+  email       String   @unique
+  displayName String?
+  createdAt   DateTime @default(now())
+
+  votes    Vote[]
+  comments Comment[]
+
+  @@map("users")
+}
+
+model Episode {
+  id              String   @id @db.Uuid
+  youtubeId       String   @unique
+  title           String
+  publishedAt     DateTime?
+  durationSeconds Int?
+  youtubeUrl      String
+  createdAt       DateTime @default(now())
+
+  episodeGuests EpisodeGuest[]
+  performances  Performance[]
+
+  @@map("episodes")
+}
+
+model Guest {
+  id        String   @id @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+
+  episodeGuests EpisodeGuest[]
+
+  @@map("guests")
+}
+
+model EpisodeGuest {
+  episode   Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  episodeId String  @db.Uuid
+  guest     Guest   @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  guestId   String  @db.Uuid
+
+  @@id([episodeId, guestId])
+  @@map("episode_guests")
+}
+
+model Contestant {
+  id           String   @id @db.Uuid
+  displayName  String
+  instagramUrl String?
+  youtubeUrl   String?
+  websiteUrl   String?
+  ticketUrl    String?
+  createdAt    DateTime @default(now())
+
+  aliases      ContestantAlias[]
+  performances Performance[]
+
+  @@map("contestants")
+}
+
+model ContestantAlias {
+  id           String   @id @db.Uuid
+  contestant   Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+  contestantId String   @db.Uuid
+  alias        String
+  createdAt    DateTime @default(now())
+
+  @@map("contestant_aliases")
+}
+
+model Performance {
+  id           String   @id @db.Uuid
+  episode      Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  episodeId    String   @db.Uuid
+  contestant   Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+  contestantId String   @db.Uuid
+  startSeconds Int
+  endSeconds   Int?
+  confidence   Decimal  @db.Decimal(4, 3)
+  introSnippet String
+  createdAt    DateTime @default(now())
+
+  votes    Vote[]
+  comments Comment[]
+
+  @@map("performances")
+}
+
+model Vote {
+  id            String   @id @db.Uuid
+  performance   Performance @relation(fields: [performanceId], references: [id], onDelete: Cascade)
+  performanceId String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String   @db.Uuid
+  rating        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@unique([performanceId, userId])
+  @@map("votes")
+}
+
+model Comment {
+  id            String   @id @db.Uuid
+  performance   Performance @relation(fields: [performanceId], references: [id], onDelete: Cascade)
+  performanceId String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String   @db.Uuid
+  body          String
+  isFlagged     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@map("comments")
+}
