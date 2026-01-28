@@ -9,6 +9,7 @@
 - **API boundaries:** Separate read APIs for the web UI from ingestion/admin write APIs, with shared types to keep contracts stable.
 - **Data flow:** Ingestion pipeline writes to the database; web UI reads via API routes or a dedicated service layer; admin queue uses the same service layer with elevated permissions.
 - **Stack direction:** Use Next.js for the web UI and API routes, Postgres as the primary datastore, and Prisma for schema/migrations to keep cost low while staying reliable.
+- **Migration choice:** Prisma is the canonical migration workflow going forward.
 
 ### Decision template
 - **Decision:** <short description>
@@ -33,7 +34,8 @@
 - Added shared connection pooling and API error handling fallbacks.
 - Added shared API error shape to standardize error payloads.
 - Added API error codes + shared logger helper for debugging.
+- Set Prisma as the canonical migration workflow and documented setup steps.
 
 ### Next steps
-- Decide on Prisma vs. raw SQL workflow for production migrations.
 - Add centralized logging strategy (structured logs + redaction).
+- Stand up local Postgres for ingestion pipeline tests.
