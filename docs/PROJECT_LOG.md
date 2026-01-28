@@ -27,7 +27,9 @@
 - Added initial SQL migration and seed data in `packages/db` for local development.
 - Documented migration + seed locations in the database package README.
 - Added a Prisma schema mirror in `packages/db/prisma` for ORM workflows.
+- Added a minimal Next.js app scaffold with API routes backed by mock data.
+- Added shared API response types in `packages/shared` for consistent payloads.
 
 ### Next steps
 - Decide on Prisma vs. raw SQL workflow for production migrations.
-- Implement API routes for episodes, contestants, and performances.
+- Wire API routes to a real database client.
