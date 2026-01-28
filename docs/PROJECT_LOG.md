@@ -26,6 +26,7 @@
 ### Progress (2025-02-14)
 - Added initial SQL migration and seed data in `packages/db` for local development.
 - Documented migration + seed locations in the database package README.
+- Added a Prisma schema mirror in `packages/db/prisma` for ORM workflows.
 
 ### Next steps
 - Decide on Prisma vs. raw SQL workflow for production migrations.

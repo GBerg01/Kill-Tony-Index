@@ -19,6 +19,7 @@ The schema includes timestamps, confidence scores, transcript snippets, and rati
 ## Migrations
 - `migrations/001_init.sql` contains the initial schema.
 - `schema.sql` mirrors the current schema for quick reference.
+- `prisma/schema.prisma` mirrors the SQL schema for ORM-based workflows.
 
 ## Seed data
 - `seed.sql` provides a small dataset for local development.
