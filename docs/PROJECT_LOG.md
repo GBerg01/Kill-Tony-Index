@@ -29,7 +29,8 @@
 - Added a Prisma schema mirror in `packages/db/prisma` for ORM workflows.
 - Added a minimal Next.js app scaffold with API routes backed by mock data.
 - Added shared API response types in `packages/shared` for consistent payloads.
+- Added a database client + query helpers in `packages/db`, and wired API routes to use them when `DATABASE_URL` is set.
 
 ### Next steps
 - Decide on Prisma vs. raw SQL workflow for production migrations.
-- Wire API routes to a real database client.
+- Add per-route error handling + connection pooling strategy in the API layer.

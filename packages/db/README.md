@@ -23,3 +23,6 @@ The schema includes timestamps, confidence scores, transcript snippets, and rati
 
 ## Seed data
 - `seed.sql` provides a small dataset for local development.
+
+## Query helpers
+- `src` contains the database client and list queries used by API routes.
