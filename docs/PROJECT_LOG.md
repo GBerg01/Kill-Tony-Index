@@ -30,7 +30,8 @@
 - Added a minimal Next.js app scaffold with API routes backed by mock data.
 - Added shared API response types in `packages/shared` for consistent payloads.
 - Added a database client + query helpers in `packages/db`, and wired API routes to use them when `DATABASE_URL` is set.
+- Added shared connection pooling and API error handling fallbacks.
 
 ### Next steps
 - Decide on Prisma vs. raw SQL workflow for production migrations.
-- Add per-route error handling + connection pooling strategy in the API layer.
+- Add richer error payloads and logging strategy for production.

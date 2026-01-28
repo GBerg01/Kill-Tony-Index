@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createDbPool, listPerformances } from "@killtony/db";
+import { getDbPool, listPerformances } from "@killtony/db";
 
 import { performances } from "@/lib/mock-data";
 
@@ -9,8 +9,13 @@ export async function GET() {
     return NextResponse.json({ data: performances });
   }
 
-  const pool = createDbPool();
-  const data = await listPerformances(pool);
+  try {
+    const pool = getDbPool();
+    const data = await listPerformances(pool);
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error("Failed to load performances", error);
+    return NextResponse.json({ data: performances }, { status: 500 });
+  }
 }

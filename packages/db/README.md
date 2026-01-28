@@ -26,3 +26,4 @@ The schema includes timestamps, confidence scores, transcript snippets, and rati
 
 ## Query helpers
 - `src` contains the database client and list queries used by API routes.
+- The client uses a shared connection pool per process.

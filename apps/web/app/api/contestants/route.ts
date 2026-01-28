@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createDbPool, listContestants } from "@killtony/db";
+import { getDbPool, listContestants } from "@killtony/db";
 
 import { contestants } from "@/lib/mock-data";
 
@@ -9,8 +9,13 @@ export async function GET() {
     return NextResponse.json({ data: contestants });
   }
 
-  const pool = createDbPool();
-  const data = await listContestants(pool);
+  try {
+    const pool = getDbPool();
+    const data = await listContestants(pool);
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error("Failed to load contestants", error);
+    return NextResponse.json({ data: contestants }, { status: 500 });
+  }
 }

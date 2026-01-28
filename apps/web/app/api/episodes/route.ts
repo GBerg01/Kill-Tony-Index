@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createDbPool, listEpisodes } from "@killtony/db";
+import { getDbPool, listEpisodes } from "@killtony/db";
 
 import { episodes } from "@/lib/mock-data";
 
@@ -9,8 +9,13 @@ export async function GET() {
     return NextResponse.json({ data: episodes });
   }
 
-  const pool = createDbPool();
-  const data = await listEpisodes(pool);
+  try {
+    const pool = getDbPool();
+    const data = await listEpisodes(pool);
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error("Failed to load episodes", error);
+    return NextResponse.json({ data: episodes }, { status: 500 });
+  }
 }

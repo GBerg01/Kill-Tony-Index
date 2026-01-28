@@ -1,11 +1,17 @@
 import { Pool } from "pg";
 
-export const createDbPool = () => {
+let pool: Pool | null = null;
+
+export const getDbPool = () => {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set");
   }
 
-  return new Pool({ connectionString: databaseUrl });
+  if (!pool) {
+    pool = new Pool({ connectionString: databaseUrl });
+  }
+
+  return pool;
 };
