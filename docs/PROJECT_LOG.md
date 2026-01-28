@@ -36,7 +36,8 @@
 - Added API error codes + shared logger helper for debugging.
 - Set Prisma as the canonical migration workflow and documented setup steps.
 - Added Docker-based local Postgres and a worker ingestion stub for YouTube metadata.
+- Added Prisma-backed persistence for episode ingestion.
 
 ### Next steps
 - Add centralized logging strategy (structured logs + redaction).
-- Extend the worker pipeline to persist episodes into Postgres.
+- Extend the worker pipeline with transcript + contestant extraction.

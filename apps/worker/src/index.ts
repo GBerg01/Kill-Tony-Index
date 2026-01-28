@@ -1,4 +1,5 @@
 import { extractEpisodes } from "./pipeline/extract";
+import { persistEpisodes } from "./pipeline/persist";
 import { fetchRecentVideos } from "./sources/youtube";
 
 const run = async () => {
@@ -11,7 +12,15 @@ const run = async () => {
   }
 
   console.info(`Fetched ${episodes.length} episodes from YouTube.`);
-  console.info(episodes);
+
+  if (!process.env.DATABASE_URL) {
+    console.warn("DATABASE_URL not set. Skipping persistence.");
+    console.info(episodes);
+    return;
+  }
+
+  await persistEpisodes(episodes);
+  console.info("Episodes persisted to Postgres.");
 };
 
 run().catch((error) => {
