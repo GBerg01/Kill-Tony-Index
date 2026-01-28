@@ -19,3 +19,9 @@ Planned pages:
 - `/guests/[id]`
 
 The app will consume API routes hosted in the backend or Next.js API routes.
+
+Current scaffolding:
+
+- Basic Next.js App Router setup.
+- API route handlers for `episodes`, `contestants`, and `performances` with mock data.
+- API routes use the database client when `DATABASE_URL` is available.
