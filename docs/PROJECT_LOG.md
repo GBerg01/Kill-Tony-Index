@@ -20,3 +20,13 @@
 ### Risks / Follow-ups
 - Confirm authentication strategy for user ratings/comments and admin review flows.
 - Decide hosting and deployment targets for web + worker.
+
+## Chapter 2: Database Design & Backend Core
+
+### Progress (2025-02-14)
+- Added initial SQL migration and seed data in `packages/db` for local development.
+- Documented migration + seed locations in the database package README.
+
+### Next steps
+- Decide on Prisma vs. raw SQL workflow for production migrations.
+- Implement API routes for episodes, contestants, and performances.
