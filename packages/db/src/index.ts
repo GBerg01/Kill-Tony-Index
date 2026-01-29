@@ -6,3 +6,7 @@ export { listContestants, getContestantById, getPerformancesByContestantId } fro
 export type { PerformanceWithEpisode } from "./queries/contestants";
 export { listPerformances, getPerformanceById } from "./queries/performances";
 export type { PerformanceDetail } from "./queries/performances";
+export { searchAll } from "./queries/search";
+export type { SearchContestantResult, SearchEpisodeResult, SearchResults } from "./queries/search";
+export { listReviewQueue } from "./queries/review";
+export type { ReviewQueueItem } from "./queries/review";

@@ -1,5 +1,7 @@
 import type { Episode } from "@killtony/shared/src/types";
 
+import { SearchPanel } from "@/app/components/search/search-panel";
+
 async function getEpisodes(): Promise<Episode[]> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const res = await fetch(`${baseUrl}/api/episodes`, { cache: "no-store" });
@@ -37,6 +39,8 @@ export default async function HomePage() {
       <p style={{ color: "#999", marginBottom: "2rem" }}>
         Searchable archive of Kill Tony contestants and performances
       </p>
+
+      <SearchPanel />
 
       <h2 style={{ marginBottom: "1rem" }}>Recent Episodes</h2>
 
