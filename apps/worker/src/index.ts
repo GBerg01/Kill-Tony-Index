@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { extractEpisodes } from "./pipeline/extract";
 import { extractPerformances } from "./pipeline/performances";
 import { persistEpisodes, persistPerformances } from "./pipeline/persist";
