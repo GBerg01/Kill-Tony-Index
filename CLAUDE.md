@@ -102,8 +102,16 @@ The web app uses Next.js Route Handlers for API endpoints:
 - Prisma model names use PascalCase; table names use snake_case (via `@@map`)
 - Package imports use `@killtony/db` and `@killtony/shared` aliases
 
+## Task Management
+
+**TASKS.md** is the source of truth for project progress. Always:
+1. Check `TASKS.md` before starting work
+2. Update it after completing tasks
+3. Note stopping points if leaving work incomplete
+
 ## Documentation
 
+- `TASKS.md` - Current task tracker (check first!)
 - `docs/ARCHITECTURE.md` - System design, routing, API boundaries
 - `docs/SCHEMA.md` - Entity definitions and TypeScript contracts
 - `docs/PROJECT_LOG.md` - Decision log and project notes
