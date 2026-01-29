@@ -1,5 +1,8 @@
 export { getDbPool } from "./client";
 export { getPrismaClient } from "./prisma";
-export { listEpisodes } from "./queries/episodes";
-export { listContestants } from "./queries/contestants";
-export { listPerformances } from "./queries/performances";
+export { listEpisodes, getEpisodeById, getPerformancesByEpisodeId } from "./queries/episodes";
+export type { PerformanceWithContestant, PaginationParams, PaginatedResult } from "./queries/episodes";
+export { listContestants, getContestantById, getPerformancesByContestantId } from "./queries/contestants";
+export type { PerformanceWithEpisode } from "./queries/contestants";
+export { listPerformances, getPerformanceById } from "./queries/performances";
+export type { PerformanceDetail } from "./queries/performances";

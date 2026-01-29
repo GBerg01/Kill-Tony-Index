@@ -13,6 +13,16 @@ export type Contestant = {
   aliases: string[];
 };
 
+export type ContestantDetail = {
+  id: string;
+  displayName: string;
+  aliases: string[];
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  websiteUrl: string | null;
+  ticketUrl: string | null;
+};
+
 export type Performance = {
   id: string;
   episodeId: string;

@@ -28,17 +28,12 @@ function formatDate(dateString: string): string {
   });
 }
 
-export default async function HomePage() {
+export default async function EpisodesPage() {
   const episodes = await getEpisodes();
 
   return (
     <div>
-      <h1 style={{ marginBottom: "0.5rem" }}>Kill Tony Index</h1>
-      <p style={{ color: "#999", marginBottom: "2rem" }}>
-        Searchable archive of Kill Tony contestants and performances
-      </p>
-
-      <h2 style={{ marginBottom: "1rem" }}>Recent Episodes</h2>
+      <h1 style={{ marginBottom: "1.5rem" }}>Episodes</h1>
 
       {episodes.length === 0 ? (
         <p style={{ color: "#666" }}>No episodes found.</p>
@@ -62,7 +57,6 @@ export default async function HomePage() {
                 border: "1px solid #333",
                 textDecoration: "none",
                 color: "inherit",
-                transition: "border-color 0.2s",
               }}
             >
               <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>
