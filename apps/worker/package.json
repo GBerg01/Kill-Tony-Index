@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "@killtony/db": "0.0.0",
-    "@killtony/shared": "0.0.0"
+    "@killtony/shared": "0.0.0",
+    "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@types/node": "^25.1.0",
