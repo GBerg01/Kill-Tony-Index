@@ -6,3 +6,5 @@ export { listContestants, getContestantById, getPerformancesByContestantId } fro
 export type { PerformanceWithEpisode } from "./queries/contestants";
 export { listPerformances, getPerformanceById } from "./queries/performances";
 export type { PerformanceDetail } from "./queries/performances";
+export { search } from "./queries/search";
+export type { SearchResult, SearchParams } from "./queries/search";

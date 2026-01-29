@@ -2,17 +2,12 @@
 
 > Source of truth for project progress. Update after every work session.
 
-## Current Phase: 2 — Search
+## Current Phase: 3 — Worker Pipeline
 
 ## In Progress
 <!-- If stopping mid-task, describe exactly where you left off -->
 
 ## Up Next
-## Phase 2 — Search
-- [ ] 2.1 Add search API endpoint with Postgres full-text search
-- [ ] 2.2 Build search UI component for homepage
-- [ ] 2.3 Include contestant aliases in search
-
 ## Phase 3 — Worker Pipeline
 - [ ] 3.1 Fix YouTube duration fetching (currently always 0)
 - [ ] 3.2 Add YouTube transcript/captions fetching
@@ -41,3 +36,4 @@
 - [x] (2026-01-29) 1.3 Build contestant detail page — Created `/contestants/[id]` page with appearances, `/contestants` listing, `/api/contestants/[id]` route, added ContestantDetail type with social links
 - [x] (2026-01-29) 1.4 & 1.6 Build performance detail page — Created `/performances/[id]` page with episode/contestant links, YouTube timestamp, confidence score, and `/api/performances/[id]` route
 - [x] (2026-01-29) 1.5 Add pagination — All list APIs now support `?page=1&limit=20`, return pagination metadata (page, limit, total, totalPages), max limit 100
+- [x] (2026-01-29) 2.1-2.3 Search — Added `/api/search` with Postgres full-text search, SearchBar component on homepage, searches episodes + contestants (including aliases)
