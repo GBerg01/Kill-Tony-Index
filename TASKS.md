@@ -22,17 +22,17 @@
 - [x] 3.6 Build admin review queue UI
 
 ## Phase 4 — Community Features
-- [ ] 4.1 Add authentication (NextAuth)
+- [x] 4.1 Add authentication (NextAuth)
 - [x] 4.2 Build rating system (1-10 per user per performance)
 - [x] 4.3 Build comments with moderation
 - [x] 4.4 Build leaderboards page
 
 ## Backlog (Bugs & Tech Debt)
-- [ ] Add `pnpm-workspace.yaml` file
-- [ ] Configure tsconfig path aliases in web app
-- [ ] Add Prisma generated client to `.gitignore`
-- [ ] Add error boundaries to React pages
-- [ ] Add loading states to all pages
+- [x] Add `pnpm-workspace.yaml` file
+- [x] Configure tsconfig path aliases in web app
+- [x] Add Prisma generated client to `.gitignore`
+- [x] Add error boundaries to React pages
+- [x] Add loading states to all pages
 
 ## Done
 - [x] (2025-02-14) Initial schema, API routes, worker stub, documentation
