@@ -15,7 +15,7 @@ export const fetchEpisodeTranscripts = async (
         return [video.id, segments] as const;
       } catch (error) {
         console.warn(`Transcript fetch failed for ${video.id}`, error);
-        return [video.id, []] as const;
+        return [video.id, [] as TranscriptSegment[]] as const;
       }
     })
   );
