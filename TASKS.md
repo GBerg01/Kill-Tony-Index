@@ -22,7 +22,7 @@
 - [x] 3.6 Build admin review queue UI
 
 ## Phase 4 — Community Features
-- [ ] 4.1 Add authentication (NextAuth)
+- [x] 4.1 Add authentication (NextAuth)
 - [x] 4.2 Build rating system (1-10 per user per performance)
 - [x] 4.3 Build comments with moderation
 - [x] 4.4 Build leaderboards page
