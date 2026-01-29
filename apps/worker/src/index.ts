@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load .env from project root (two levels up from apps/worker/src)
+config({ path: resolve(__dirname, "../../../.env") });
 
 import { extractEpisodes } from "./pipeline/extract";
 import { extractPerformances } from "./pipeline/performances";
