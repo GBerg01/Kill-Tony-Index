@@ -34,7 +34,7 @@ export const fetchRecentVideos = async (): Promise<YouTubeVideo[]> => {
     channelId,
     part: "snippet",
     order: "date",
-    maxResults: "10",
+    maxResults: "25",
     type: "video",
   });
 
