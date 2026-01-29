@@ -2,5 +2,9 @@
   "name": "@killtony/shared",
   "version": "0.0.0",
   "private": true,
-  "types": "src/types.ts"
+  "main": "src/types.ts",
+  "types": "src/types.ts",
+  "exports": {
+    ".": "./src/types.ts"
+  }
 }
