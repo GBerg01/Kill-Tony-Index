@@ -10,6 +10,8 @@ type PerformanceWithEpisode = {
   endSeconds: number | null;
   confidence: number;
   introSnippet: string;
+  averageRating: number;
+  ratingCount: number;
 };
 
 type ContestantDetailResponse = {
@@ -171,6 +173,10 @@ export default async function ContestantDetailPage({
                   {performance.introSnippet}
                 </p>
               )}
+
+              <div style={{ marginTop: "0.75rem", color: "#888", fontSize: "0.85rem" }}>
+                Avg rating: {performance.averageRating.toFixed(1)} · {performance.ratingCount} ratings
+              </div>
 
               <div style={{ marginTop: "0.75rem" }}>
                 <a

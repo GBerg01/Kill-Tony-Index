@@ -83,6 +83,8 @@ export type PerformanceWithEpisode = {
   endSeconds: number | null;
   confidence: number;
   introSnippet: string;
+  averageRating: number;
+  ratingCount: number;
 };
 
 export const getPerformancesByContestantId = async (
@@ -98,11 +100,15 @@ export const getPerformancesByContestantId = async (
             p.start_seconds AS "startSeconds",
             p.end_seconds AS "endSeconds",
             p.confidence,
-            p.intro_snippet AS "introSnippet"
+            p.intro_snippet AS "introSnippet",
+            COALESCE(AVG(v.rating), 0)::float AS "averageRating",
+            COUNT(v.rating)::int AS "ratingCount"
      FROM performances p
      JOIN episodes e ON e.id = p.episode_id
+     LEFT JOIN votes v ON v.performance_id = p.id
      WHERE p.contestant_id = $1
-     ORDER BY e.published_at DESC NULLS LAST`,
+     GROUP BY p.id, e.title, e.published_at, e.youtube_url
+     ORDER BY "averageRating" DESC, "ratingCount" DESC, e.published_at DESC NULLS LAST`,
     [contestantId]
   );
 

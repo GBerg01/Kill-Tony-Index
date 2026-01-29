@@ -2,30 +2,30 @@
 
 > Source of truth for project progress. Update after every work session.
 
-## Current Phase: 2 — Search
+## Current Phase: 4 — Community Features
 
 ## In Progress
 <!-- If stopping mid-task, describe exactly where you left off -->
 
 ## Up Next
 ## Phase 2 — Search
-- [ ] 2.1 Add search API endpoint with Postgres full-text search
-- [ ] 2.2 Build search UI component for homepage
-- [ ] 2.3 Include contestant aliases in search
+- [x] 2.1 Add search API endpoint with Postgres full-text search
+- [x] 2.2 Build search UI component for homepage
+- [x] 2.3 Include contestant aliases in search
 
 ## Phase 3 — Worker Pipeline
-- [ ] 3.1 Fix YouTube duration fetching (currently always 0)
-- [ ] 3.2 Add YouTube transcript/captions fetching
-- [ ] 3.3 Build performance boundary detection
-- [ ] 3.4 Build contestant name extraction from transcripts
-- [ ] 3.5 Add confidence scoring for extractions
-- [ ] 3.6 Build admin review queue UI
+- [x] 3.1 Fix YouTube duration fetching (currently always 0)
+- [x] 3.2 Add YouTube transcript/captions fetching
+- [x] 3.3 Build performance boundary detection
+- [x] 3.4 Build contestant name extraction from transcripts
+- [x] 3.5 Add confidence scoring for extractions
+- [x] 3.6 Build admin review queue UI
 
 ## Phase 4 — Community Features
 - [ ] 4.1 Add authentication (NextAuth)
-- [ ] 4.2 Build rating system (1-10 per user per performance)
-- [ ] 4.3 Build comments with moderation
-- [ ] 4.4 Build leaderboards page
+- [x] 4.2 Build rating system (1-10 per user per performance)
+- [x] 4.3 Build comments with moderation
+- [x] 4.4 Build leaderboards page
 
 ## Backlog (Bugs & Tech Debt)
 - [ ] Add `pnpm-workspace.yaml` file
@@ -41,3 +41,15 @@
 - [x] (2026-01-29) 1.3 Build contestant detail page — Created `/contestants/[id]` page with appearances, `/contestants` listing, `/api/contestants/[id]` route, added ContestantDetail type with social links
 - [x] (2026-01-29) 1.4 & 1.6 Build performance detail page — Created `/performances/[id]` page with episode/contestant links, YouTube timestamp, confidence score, and `/api/performances/[id]` route
 - [x] (2026-01-29) 1.5 Add pagination — All list APIs now support `?page=1&limit=20`, return pagination metadata (page, limit, total, totalPages), max limit 100
+- [x] (2026-01-29) 2.1 Add search API endpoint with Postgres full-text search
+- [x] (2026-01-29) 2.2 Build search UI component for homepage
+- [x] (2026-01-29) 2.3 Include contestant aliases in search
+- [x] (2026-01-29) 3.1 Fix YouTube duration fetching (currently always 0)
+- [x] (2026-01-29) 3.2 Add YouTube transcript/captions fetching
+- [x] (2026-01-29) 3.3 Build performance boundary detection
+- [x] (2026-01-29) 3.4 Build contestant name extraction from transcripts
+- [x] (2026-01-29) 3.5 Add confidence scoring for extractions
+- [x] (2026-01-29) 3.6 Build admin review queue UI
+- [x] (2026-01-29) 4.2 Build rating system (1-10 per user per performance)
+- [x] (2026-01-29) 4.3 Build comments with moderation
+- [x] (2026-01-29) 4.4 Build leaderboards page

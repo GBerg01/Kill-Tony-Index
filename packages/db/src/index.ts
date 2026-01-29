@@ -6,3 +6,13 @@ export { listContestants, getContestantById, getPerformancesByContestantId } fro
 export type { PerformanceWithEpisode } from "./queries/contestants";
 export { listPerformances, getPerformanceById } from "./queries/performances";
 export type { PerformanceDetail } from "./queries/performances";
+export { searchAll } from "./queries/search";
+export type { SearchContestantResult, SearchEpisodeResult, SearchResults } from "./queries/search";
+export { listReviewQueue } from "./queries/review";
+export type { ReviewQueueItem } from "./queries/review";
+export { createComment, listComments } from "./queries/comments";
+export type { CommentRow } from "./queries/comments";
+export { getRatingSummary, upsertRating } from "./queries/ratings";
+export type { RatingSummary } from "./queries/ratings";
+export { listContestantLeaderboard } from "./queries/leaderboards";
+export type { LeaderboardEntry } from "./queries/leaderboards";
