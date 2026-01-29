@@ -1,10 +1,14 @@
 import { extractEpisodes } from "./pipeline/extract";
-import { persistEpisodes } from "./pipeline/persist";
+import { extractPerformances } from "./pipeline/performances";
+import { persistEpisodes, persistPerformances } from "./pipeline/persist";
+import { fetchEpisodeTranscripts } from "./pipeline/transcripts";
 import { fetchRecentVideos } from "./sources/youtube";
 
 const run = async () => {
   const videos = await fetchRecentVideos();
   const episodes = extractEpisodes(videos);
+  const transcriptsByVideo = await fetchEpisodeTranscripts(videos);
+  const performances = extractPerformances(videos, transcriptsByVideo);
 
   if (episodes.length === 0) {
     console.warn("No videos found. Check YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID.");
@@ -16,10 +20,12 @@ const run = async () => {
   if (!process.env.DATABASE_URL) {
     console.warn("DATABASE_URL not set. Skipping persistence.");
     console.info(episodes);
+    console.info(performances);
     return;
   }
 
   await persistEpisodes(episodes);
+  await persistPerformances(performances);
   console.info("Episodes persisted to Postgres.");
 };
 
