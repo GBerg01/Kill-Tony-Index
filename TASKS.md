@@ -28,11 +28,11 @@
 - [x] 4.4 Build leaderboards page
 
 ## Backlog (Bugs & Tech Debt)
-- [ ] Add `pnpm-workspace.yaml` file
-- [ ] Configure tsconfig path aliases in web app
-- [ ] Add Prisma generated client to `.gitignore`
-- [ ] Add error boundaries to React pages
-- [ ] Add loading states to all pages
+- [x] Add `pnpm-workspace.yaml` file
+- [x] Configure tsconfig path aliases in web app
+- [x] Add Prisma generated client to `.gitignore`
+- [x] Add error boundaries to React pages
+- [x] Add loading states to all pages
 
 ## Done
 - [x] (2025-02-14) Initial schema, API routes, worker stub, documentation
