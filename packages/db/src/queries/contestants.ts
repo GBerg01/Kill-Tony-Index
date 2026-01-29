@@ -2,23 +2,51 @@ import type { Pool } from "pg";
 
 import type { Contestant, ContestantDetail } from "@killtony/shared/src/types";
 
-export const listContestants = async (pool: Pool): Promise<Contestant[]> => {
-  const result = await pool.query(
-    `SELECT contestants.id,
-            contestants.display_name AS "displayName",
-            COALESCE(
-              ARRAY_AGG(contestant_aliases.alias ORDER BY contestant_aliases.alias)
-                FILTER (WHERE contestant_aliases.alias IS NOT NULL),
-              '{}'
-            ) AS aliases
-     FROM contestants
-     LEFT JOIN contestant_aliases
-       ON contestant_aliases.contestant_id = contestants.id
-     GROUP BY contestants.id
-     ORDER BY contestants.display_name ASC`
-  );
+export type PaginationParams = {
+  limit?: number;
+  offset?: number;
+};
 
-  return result.rows as Contestant[];
+export type PaginatedResult<T> = {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export const listContestants = async (
+  pool: Pool,
+  pagination?: PaginationParams
+): Promise<PaginatedResult<Contestant>> => {
+  const limit = pagination?.limit || 20;
+  const offset = pagination?.offset || 0;
+
+  const [dataResult, countResult] = await Promise.all([
+    pool.query(
+      `SELECT contestants.id,
+              contestants.display_name AS "displayName",
+              COALESCE(
+                ARRAY_AGG(contestant_aliases.alias ORDER BY contestant_aliases.alias)
+                  FILTER (WHERE contestant_aliases.alias IS NOT NULL),
+                '{}'
+              ) AS aliases
+       FROM contestants
+       LEFT JOIN contestant_aliases
+         ON contestant_aliases.contestant_id = contestants.id
+       GROUP BY contestants.id
+       ORDER BY contestants.display_name ASC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    ),
+    pool.query(`SELECT COUNT(*) FROM contestants`),
+  ]);
+
+  return {
+    items: dataResult.rows as Contestant[],
+    total: parseInt(countResult.rows[0].count, 10),
+    limit,
+    offset,
+  };
 };
 
 export const getContestantById = async (pool: Pool, id: string): Promise<ContestantDetail | null> => {

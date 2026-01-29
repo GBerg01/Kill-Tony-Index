@@ -2,14 +2,12 @@
 
 > Source of truth for project progress. Update after every work session.
 
-## Current Phase: 1 — Core UI
+## Current Phase: 2 — Search
 
 ## In Progress
 <!-- If stopping mid-task, describe exactly where you left off -->
 
 ## Up Next
-- [ ] 1.5 Add pagination to all list API routes (`?page=1&limit=20`)
-
 ## Phase 2 — Search
 - [ ] 2.1 Add search API endpoint with Postgres full-text search
 - [ ] 2.2 Build search UI component for homepage
@@ -42,3 +40,4 @@
 - [x] (2026-01-29) 1.2 Build episode detail page — Created `/episodes/[id]` page with performances list, YouTube timestamp links, and `/api/episodes/[id]` route
 - [x] (2026-01-29) 1.3 Build contestant detail page — Created `/contestants/[id]` page with appearances, `/contestants` listing, `/api/contestants/[id]` route, added ContestantDetail type with social links
 - [x] (2026-01-29) 1.4 & 1.6 Build performance detail page — Created `/performances/[id]` page with episode/contestant links, YouTube timestamp, confidence score, and `/api/performances/[id]` route
+- [x] (2026-01-29) 1.5 Add pagination — All list APIs now support `?page=1&limit=20`, return pagination metadata (page, limit, total, totalPages), max limit 100

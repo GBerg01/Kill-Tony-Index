@@ -2,20 +2,48 @@ import type { Pool } from "pg";
 
 import type { Performance } from "@killtony/shared/src/types";
 
-export const listPerformances = async (pool: Pool): Promise<Performance[]> => {
-  const result = await pool.query(
-    `SELECT id,
-            episode_id AS "episodeId",
-            contestant_id AS "contestantId",
-            start_seconds AS "startSeconds",
-            end_seconds AS "endSeconds",
-            confidence,
-            intro_snippet AS "introSnippet"
-     FROM performances
-     ORDER BY created_at DESC`
-  );
+export type PaginationParams = {
+  limit?: number;
+  offset?: number;
+};
 
-  return result.rows as Performance[];
+export type PaginatedResult<T> = {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export const listPerformances = async (
+  pool: Pool,
+  pagination?: PaginationParams
+): Promise<PaginatedResult<Performance>> => {
+  const limit = pagination?.limit || 20;
+  const offset = pagination?.offset || 0;
+
+  const [dataResult, countResult] = await Promise.all([
+    pool.query(
+      `SELECT id,
+              episode_id AS "episodeId",
+              contestant_id AS "contestantId",
+              start_seconds AS "startSeconds",
+              end_seconds AS "endSeconds",
+              confidence,
+              intro_snippet AS "introSnippet"
+       FROM performances
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    ),
+    pool.query(`SELECT COUNT(*) FROM performances`),
+  ]);
+
+  return {
+    items: dataResult.rows as Performance[],
+    total: parseInt(countResult.rows[0].count, 10),
+    limit,
+    offset,
+  };
 };
 
 export type PerformanceDetail = {
