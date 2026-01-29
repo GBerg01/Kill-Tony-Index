@@ -25,6 +25,7 @@ export const fetchRecentVideos = async (): Promise<YouTubeVideo[]> => {
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
 
   if (!apiKey || !channelId) {
+    console.error("Missing env vars - YOUTUBE_API_KEY:", !!apiKey, "YOUTUBE_CHANNEL_ID:", !!channelId);
     return [];
   }
 
@@ -40,7 +41,9 @@ export const fetchRecentVideos = async (): Promise<YouTubeVideo[]> => {
   const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
 
   if (!response.ok) {
-    throw new Error("Failed to fetch YouTube videos");
+    const errorBody = await response.text();
+    console.error("YouTube API error:", response.status, errorBody);
+    throw new Error(`Failed to fetch YouTube videos: ${response.status}`);
   }
 
   const payload = (await response.json()) as {
