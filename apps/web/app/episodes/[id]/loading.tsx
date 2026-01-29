@@ -1,11 +1,11 @@
 export default function Loading() {
   return (
-    <section style={{ display: "grid", gap: "1rem" }}>
-      <div style={{ height: "32px", width: "40%", backgroundColor: "#1f2937", borderRadius: "6px" }} />
-      <div style={{ height: "16px", width: "70%", backgroundColor: "#111827", borderRadius: "6px" }} />
-      <div style={{ height: "16px", width: "60%", backgroundColor: "#111827", borderRadius: "6px" }} />
-      <div style={{ height: "16px", width: "80%", backgroundColor: "#111827", borderRadius: "6px" }} />
-      <div style={{ height: "240px", backgroundColor: "#0f172a", borderRadius: "12px" }} />
+    <section className="grid gap-3">
+      <div className="h-8 w-2/5 rounded-lg bg-white/10" />
+      <div className="h-4 w-3/4 rounded-lg bg-white/5" />
+      <div className="h-4 w-2/3 rounded-lg bg-white/5" />
+      <div className="h-4 w-4/5 rounded-lg bg-white/5" />
+      <div className="h-60 rounded-2xl bg-white/5" />
     </section>
   );
 }
