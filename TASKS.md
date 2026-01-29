@@ -9,11 +9,6 @@
 
 ## Up Next
 ## Phase 3 — Worker Pipeline
-- [ ] 3.1 Fix YouTube duration fetching (currently always 0)
-- [ ] 3.2 Add YouTube transcript/captions fetching
-- [ ] 3.3 Build performance boundary detection
-- [ ] 3.4 Build contestant name extraction from transcripts
-- [ ] 3.5 Add confidence scoring for extractions
 - [ ] 3.6 Build admin review queue UI
 
 ## Phase 4 — Community Features
@@ -37,3 +32,4 @@
 - [x] (2026-01-29) 1.4 & 1.6 Build performance detail page — Created `/performances/[id]` page with episode/contestant links, YouTube timestamp, confidence score, and `/api/performances/[id]` route
 - [x] (2026-01-29) 1.5 Add pagination — All list APIs now support `?page=1&limit=20`, return pagination metadata (page, limit, total, totalPages), max limit 100
 - [x] (2026-01-29) 2.1-2.3 Search — Added `/api/search` with Postgres full-text search, SearchBar component on homepage, searches episodes + contestants (including aliases)
+- [x] (2026-01-29) 3.1-3.5 Worker Pipeline — Fixed YouTube duration (Videos API), added transcript fetching, performance boundary detection with intro pattern matching, contestant name extraction, confidence scoring (0.5-0.95 based on pattern quality)
