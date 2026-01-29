@@ -1,3 +1,5 @@
+import { FeedbackPanel } from "@/app/components/performances/feedback-panel";
+
 type PerformanceDetail = {
   id: string;
   episodeId: string;
@@ -170,17 +172,15 @@ export default async function PerformanceDetailPage({
 
         {performance.introSnippet && (
           <div style={{ marginTop: "1.5rem" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem", color: "#999" }}>Intro Snippet</h3>
+            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem", color: "#999" }}>
+              Intro Snippet
+            </h3>
             <p style={{ margin: 0, lineHeight: 1.6 }}>{performance.introSnippet}</p>
           </div>
         )}
       </div>
 
-      <div style={{ color: "#666", fontSize: "0.875rem" }}>
-        <p style={{ margin: 0 }}>
-          Ratings and comments coming soon!
-        </p>
-      </div>
+      <FeedbackPanel performanceId={performance.id} />
     </div>
   );
 }

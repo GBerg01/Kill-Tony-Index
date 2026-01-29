@@ -17,6 +17,8 @@ type PerformanceWithEpisode = {
   endSeconds: number | null;
   confidence: number;
   introSnippet: string;
+  averageRating: number;
+  ratingCount: number;
 };
 
 export async function GET(
@@ -57,6 +59,8 @@ export async function GET(
           endSeconds: p.endSeconds ?? null,
           confidence: p.confidence,
           introSnippet: p.introSnippet,
+          averageRating: 0,
+          ratingCount: 0,
         };
       });
 
@@ -111,6 +115,8 @@ export async function GET(
           endSeconds: p.endSeconds ?? null,
           confidence: p.confidence,
           introSnippet: p.introSnippet,
+          averageRating: 0,
+          ratingCount: 0,
         };
       });
 

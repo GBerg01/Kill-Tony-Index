@@ -23,9 +23,9 @@
 
 ## Phase 4 — Community Features
 - [ ] 4.1 Add authentication (NextAuth)
-- [ ] 4.2 Build rating system (1-10 per user per performance)
-- [ ] 4.3 Build comments with moderation
-- [ ] 4.4 Build leaderboards page
+- [x] 4.2 Build rating system (1-10 per user per performance)
+- [x] 4.3 Build comments with moderation
+- [x] 4.4 Build leaderboards page
 
 ## Backlog (Bugs & Tech Debt)
 - [ ] Add `pnpm-workspace.yaml` file
@@ -50,3 +50,6 @@
 - [x] (2026-01-29) 3.4 Build contestant name extraction from transcripts
 - [x] (2026-01-29) 3.5 Add confidence scoring for extractions
 - [x] (2026-01-29) 3.6 Build admin review queue UI
+- [x] (2026-01-29) 4.2 Build rating system (1-10 per user per performance)
+- [x] (2026-01-29) 4.3 Build comments with moderation
+- [x] (2026-01-29) 4.4 Build leaderboards page
