@@ -17,3 +17,40 @@ export const listPerformances = async (pool: Pool): Promise<Performance[]> => {
 
   return result.rows as Performance[];
 };
+
+export type PerformanceDetail = {
+  id: string;
+  episodeId: string;
+  episodeTitle: string;
+  episodePublishedAt: string;
+  youtubeUrl: string;
+  contestantId: string;
+  contestantName: string;
+  startSeconds: number;
+  endSeconds: number | null;
+  confidence: number;
+  introSnippet: string;
+};
+
+export const getPerformanceById = async (pool: Pool, id: string): Promise<PerformanceDetail | null> => {
+  const result = await pool.query(
+    `SELECT p.id,
+            p.episode_id AS "episodeId",
+            e.title AS "episodeTitle",
+            e.published_at AS "episodePublishedAt",
+            e.youtube_url AS "youtubeUrl",
+            p.contestant_id AS "contestantId",
+            c.display_name AS "contestantName",
+            p.start_seconds AS "startSeconds",
+            p.end_seconds AS "endSeconds",
+            p.confidence,
+            p.intro_snippet AS "introSnippet"
+     FROM performances p
+     JOIN episodes e ON e.id = p.episode_id
+     JOIN contestants c ON c.id = p.contestant_id
+     WHERE p.id = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+};
