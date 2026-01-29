@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
 type RatingSummary = {
@@ -28,6 +29,7 @@ type FeedbackPanelProps = {
 };
 
 export function FeedbackPanel({ performanceId }: FeedbackPanelProps) {
+  const { data: session } = useSession();
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>({ average: 0, count: 0 });
   const [ratingValue, setRatingValue] = useState("8");
   const [comments, setComments] = useState<Comment[]>([]);
@@ -65,6 +67,15 @@ export function FeedbackPanel({ performanceId }: FeedbackPanelProps) {
 
     loadFeedback();
   }, [performanceId]);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+    if (session?.user?.name) {
+      setDisplayName(session.user.name);
+    }
+  }, [session?.user?.email, session?.user?.name]);
 
   const handleRatingSubmit = async () => {
     if (!canSubmit) {
@@ -156,12 +167,18 @@ export function FeedbackPanel({ performanceId }: FeedbackPanelProps) {
         </div>
 
         <div style={{ display: "grid", gap: "0.75rem" }}>
+          {session?.user?.email && (
+            <p style={{ margin: 0, color: "#9ca3af" }}>
+              Signed in as <strong style={{ color: "#e5e7eb" }}>{session.user.email}</strong>
+            </p>
+          )}
           <label style={{ display: "grid", gap: "0.25rem" }}>
             <span style={{ color: "#999" }}>Your email</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              readOnly={Boolean(session?.user?.email)}
               placeholder="you@example.com"
               style={{
                 padding: "0.6rem 0.75rem",
