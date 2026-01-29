@@ -38,7 +38,7 @@ export const persistPerformances = async (performances: ExtractedPerformance[]) 
     where: { youtubeId: { in: episodeIds } },
     select: { id: true, youtubeId: true },
   });
-  const episodeIdByYoutubeId = new Map(episodes.map((episode) => [episode.youtubeId, episode.id]));
+  const episodeIdByYoutubeId = new Map(episodes.map((episode: { youtubeId: string; id: string }) => [episode.youtubeId, episode.id]));
 
   for (const performance of performances) {
     const episodeId = episodeIdByYoutubeId.get(performance.episodeYoutubeId);
