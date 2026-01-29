@@ -1,186 +1,150 @@
-import { FeedbackPanel } from "@/app/components/performances/feedback-panel";
+import type { Metadata } from "next";
 
-type PerformanceDetail = {
-  id: string;
-  episodeId: string;
-  episodeTitle: string;
-  episodePublishedAt: string;
-  youtubeUrl: string;
-  contestantId: string;
-  contestantName: string;
-  startSeconds: number;
-  endSeconds: number | null;
-  confidence: number;
-  introSnippet: string;
-};
-
-type PerformanceDetailResponse = {
-  data: PerformanceDetail;
-  error?: { message: string; code: string };
-};
-
-async function getPerformance(id: string): Promise<PerformanceDetailResponse | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/performances/${id}`, { cache: "no-store" });
-  if (!res.ok) {
-    return null;
-  }
-  return res.json();
-}
-
-function formatDate(dateString: string): string {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatTimestamp(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
-
-function formatDuration(startSeconds: number, endSeconds: number | null): string {
-  if (!endSeconds) return "";
-  const duration = endSeconds - startSeconds;
-  const minutes = Math.floor(duration / 60);
-  const secs = duration % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
-
-function getYouTubeTimestampUrl(youtubeUrl: string, startSeconds: number): string {
-  if (!youtubeUrl) return "#";
-  const url = new URL(youtubeUrl);
-  url.searchParams.set("t", startSeconds.toString());
-  return url.toString();
-}
+import { ConfidenceBadge } from "@/components/confidence-badge";
+import { PerformanceCard } from "@/components/performance-card";
+import { RatingStarsOrSlider } from "@/components/rating-slider";
+import { ShareButtons } from "@/components/share-buttons";
+import { Snippet } from "@/components/snippet";
+import { TimestampButton } from "@/components/timestamp-button";
+import {
+  getContestantById,
+  getEpisodeById,
+  getPerformanceById,
+  getPerformancesByContestant,
+  getPerformancesByEpisode,
+} from "@/lib/kt-index-data";
 
 export default async function PerformanceDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const result = await getPerformance(params.id);
+  const performance = getPerformanceById(params.id);
 
-  if (!result || !result.data) {
+  if (!performance) {
     return (
-      <div>
-        <h1>Performance Not Found</h1>
-        <p style={{ color: "#999" }}>The performance you're looking for doesn't exist.</p>
-        <a href="/" style={{ color: "#3b82f6" }}>← Back to home</a>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-white">Performance Not Found</h1>
+        <p className="text-sm text-kt-muted">The performance you're looking for doesn't exist.</p>
+        <a href="/" className="text-sm text-white/80 hover:text-white">
+          ← Back to home
+        </a>
       </div>
     );
   }
 
-  const performance = result.data;
-  const youtubeTimestampUrl = getYouTubeTimestampUrl(performance.youtubeUrl, performance.startSeconds);
+  const episode = getEpisodeById(performance.episodeId);
+  const contestant = getContestantById(performance.contestantId);
+  const moreFromContestant = getPerformancesByContestant(performance.contestantId).filter(
+    (item) => item.id !== performance.id,
+  );
+  const moreFromEpisode = getPerformancesByEpisode(performance.episodeId).filter(
+    (item) => item.id !== performance.id,
+  );
 
   return (
-    <div>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <a href={`/episodes/${performance.episodeId}`} style={{ color: "#999", textDecoration: "none", fontSize: "0.875rem" }}>
-          ← Back to {performance.episodeTitle}
+    <div className="space-y-10">
+      <div className="space-y-4">
+        <a href={`/episodes/${performance.episodeId}`} className="text-sm text-kt-muted hover:text-white">
+          ← Back to episode #{performance.episodeNumber}
         </a>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold text-white">{contestant?.name ?? performance.contestantName}</h1>
+          <ConfidenceBadge level={performance.confidence} />
+        </div>
+        <p className="text-sm text-kt-muted">
+          Scene page for Kill Tony #{performance.episodeNumber} · {episode?.title ?? performance.episodeTitle} ·{" "}
+          {performance.timestampLabel}
+        </p>
       </div>
 
-      <h1 style={{ marginBottom: "0.5rem" }}>
-        <a
-          href={`/contestants/${performance.contestantId}`}
-          style={{ color: "#ededed", textDecoration: "none" }}
-        >
-          {performance.contestantName}
-        </a>
-      </h1>
-
-      <p style={{ color: "#999", marginBottom: "1.5rem" }}>
-        Performance on{" "}
-        <a
-          href={`/episodes/${performance.episodeId}`}
-          style={{ color: "#3b82f6", textDecoration: "none" }}
-        >
-          {performance.episodeTitle}
-        </a>
-        {" · "}
-        {formatDate(performance.episodePublishedAt)}
-      </p>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          marginBottom: "2rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <a
-          href={youtubeTimestampUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#dc2626",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "6px",
-            fontWeight: 500,
-          }}
-        >
-          Watch on YouTube at {formatTimestamp(performance.startSeconds)}
-        </a>
+      <div className="space-y-4 rounded-2xl border border-kt-border bg-kt-card p-6 shadow-soft-glow">
+        <div className="flex flex-wrap items-center gap-4">
+          <TimestampButton href={performance.youtubeJumpUrl} label="⏱ Jump to moment (YouTube)" />
+          <p className="text-xs text-kt-muted">Opens YouTube at the exact timestamp.</p>
+        </div>
+        <div className="flex flex-wrap gap-3 text-sm text-kt-muted">
+          <span>Rating {performance.ratingAvg.toFixed(1)}</span>
+          <span>{performance.ratingCount} votes</span>
+          <span>{performance.commentCount} comments</span>
+          <span>Jump instantly — no scrubbing.</span>
+        </div>
       </div>
 
-      <div
-        style={{
-          padding: "1.5rem",
-          backgroundColor: "#1a1a1a",
-          borderRadius: "8px",
-          border: "1px solid #333",
-          marginBottom: "2rem",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1.1rem" }}>Performance Details</h2>
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-kt-border bg-kt-card p-6 shadow-soft-glow">
+            <h2 className="text-xl font-semibold text-white">Transcript snippet</h2>
+            <div className="mt-4">
+              <Snippet text={performance.snippet} />
+            </div>
+          </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.75rem 1.5rem" }}>
-          <span style={{ color: "#999" }}>Start Time:</span>
-          <span style={{ fontFamily: "monospace" }}>{formatTimestamp(performance.startSeconds)}</span>
-
-          {performance.endSeconds && (
-            <>
-              <span style={{ color: "#999" }}>End Time:</span>
-              <span style={{ fontFamily: "monospace" }}>{formatTimestamp(performance.endSeconds)}</span>
-
-              <span style={{ color: "#999" }}>Duration:</span>
-              <span>{formatDuration(performance.startSeconds, performance.endSeconds)}</span>
-            </>
-          )}
-
-          <span style={{ color: "#999" }}>Confidence:</span>
-          <span>{(performance.confidence * 100).toFixed(1)}%</span>
+          <div className="rounded-2xl border border-kt-border bg-kt-card p-6 shadow-soft-glow">
+            <h2 className="text-xl font-semibold text-white">Comments</h2>
+            <div className="mt-4 space-y-4 text-sm text-kt-muted">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                “That callback at the end was flawless. Jump instantly to the punchline.”
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                “Perfect crowd control — no scrubbing needed.”
+              </div>
+              <button className="text-xs font-semibold text-white/80 hover:text-white">
+                View full thread →
+              </button>
+            </div>
+          </div>
         </div>
 
-        {performance.introSnippet && (
-          <div style={{ marginTop: "1.5rem" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1rem", color: "#999" }}>
-              Intro Snippet
-            </h3>
-            <p style={{ margin: 0, lineHeight: 1.6 }}>{performance.introSnippet}</p>
+        <div className="space-y-6">
+          <RatingStarsOrSlider />
+          <div className="rounded-2xl border border-kt-border bg-kt-card p-6 shadow-soft-glow">
+            <h2 className="text-xl font-semibold text-white">Share this moment</h2>
+            <p className="mt-2 text-sm text-kt-muted">
+              Share the scene page or copy the exact YouTube timestamp.
+            </p>
+            <div className="mt-4">
+              <ShareButtons performance={performance} />
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
-      <FeedbackPanel performanceId={performance.id} />
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold text-white">More from this contestant</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {moreFromContestant.slice(0, 2).map((item) => (
+            <PerformanceCard key={item.id} performance={item} />
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold text-white">More performances in this episode</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {moreFromEpisode.slice(0, 2).map((item) => (
+            <PerformanceCard key={item.id} performance={item} />
+          ))}
+        </div>
+      </div>
     </div>
   );
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const performance = getPerformanceById(params.id);
+  if (!performance) {
+    return {
+      title: "Performance not found",
+    };
+  }
+
+  return {
+    title: `${performance.contestantName} — Kill Tony #${performance.episodeNumber}`,
+    description: `${performance.timestampLabel} · Rated ${performance.ratingAvg.toFixed(1)} · ${performance.snippet}`,
+    openGraph: {
+      title: `${performance.contestantName} — Kill Tony #${performance.episodeNumber}`,
+      description: `${performance.timestampLabel} · Rated ${performance.ratingAvg.toFixed(1)} · ${performance.snippet}`,
+    },
+  };
 }

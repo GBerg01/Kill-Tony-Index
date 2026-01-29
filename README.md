@@ -24,6 +24,10 @@ kill-tony-index/
 - Allow comments per performance with basic moderation.
 - Provide host/guest pages with episode lists.
 
+## Product framing
+
+Kill Tony Index does not host videos — it is a curation and jump-to-moment layer that deep-links to YouTube timestamps for every performance.
+
 ## Data model (high level)
 
 The core unit is a performance, which links a contestant to an episode and includes a YouTube timestamp. Performances are backed by AI extraction and can be reviewed in an admin queue.

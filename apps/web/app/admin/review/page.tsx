@@ -85,7 +85,7 @@ export default async function ReviewQueuePage() {
                 </a>
                 {item.youtubeUrl && (
                   <a href={buildYouTubeLink(item.youtubeUrl, item.startSeconds)} style={{ color: "#fff" }}>
-                    Watch on YouTube
+                    ▶ Watch full episode on YouTube · YouTube ↗
                   </a>
                 )}
               </div>
