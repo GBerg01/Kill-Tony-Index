@@ -8,10 +8,9 @@
 <!-- If stopping mid-task, describe exactly where you left off -->
 
 ## Up Next
-- [ ] 1.3 Build contestant detail page `/contestants/[id]` with appearances
 - [ ] 1.4 Build performance detail page `/performances/[id]`
 - [ ] 1.5 Add pagination to all list API routes (`?page=1&limit=20`)
-- [ ] 1.6 Add remaining individual resource API routes (`/api/contestants/[id]`, `/api/performances/[id]`)
+- [ ] 1.6 Add remaining individual resource API route (`/api/performances/[id]`)
 
 ## Phase 2 — Search
 - [ ] 2.1 Add search API endpoint with Postgres full-text search
@@ -43,3 +42,4 @@
 - [x] (2025-02-14) Initial schema, API routes, worker stub, documentation
 - [x] (2026-01-29) 1.1 Build home page with episode list grid — Added layout.tsx, updated page.tsx with episode grid, created /episodes listing page
 - [x] (2026-01-29) 1.2 Build episode detail page — Created `/episodes/[id]` page with performances list, YouTube timestamp links, and `/api/episodes/[id]` route
+- [x] (2026-01-29) 1.3 Build contestant detail page — Created `/contestants/[id]` page with appearances, `/contestants` listing, `/api/contestants/[id]` route, added ContestantDetail type with social links
