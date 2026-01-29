@@ -8,14 +8,14 @@ export type EpisodeTranscriptMap = Map<string, TranscriptSegment[]>;
 export const fetchEpisodeTranscripts = async (
   videos: YouTubeVideo[]
 ): Promise<EpisodeTranscriptMap> => {
-  const entries = await Promise.all(
-    videos.map(async (video) => {
+  const entries: [string, TranscriptSegment[]][] = await Promise.all(
+    videos.map(async (video): Promise<[string, TranscriptSegment[]]> => {
       try {
         const segments = await fetchTranscript(video.id);
-        return [video.id, segments] as const;
+        return [video.id, segments];
       } catch (error) {
         console.warn(`Transcript fetch failed for ${video.id}`, error);
-        return [video.id, [] as TranscriptSegment[]] as const;
+        return [video.id, []];
       }
     })
   );
