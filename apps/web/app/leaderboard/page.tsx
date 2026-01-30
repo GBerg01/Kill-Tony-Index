@@ -1,59 +1,42 @@
 import Link from "next/link";
 
-const leaderboardRows = [
-  {
-    rank: "01",
-    initials: "WM",
-    name: "William Montgomery",
-    role: "Regular",
-    episode: "#500 Anniversary Special",
-    timestamp: "01:12:45",
-    rating: "9.9",
-    votes: "12,402",
-  },
-  {
-    rank: "02",
-    initials: "CR",
-    name: "Casey Rocket",
-    role: "Performance",
-    episode: "#642 (Guests: Joe Rogan)",
-    timestamp: "00:45:12",
-    rating: "9.8",
-    votes: "8,119",
-  },
-  {
-    rank: "03",
-    initials: "KL",
-    name: "Kam Patterson",
-    role: "Regular",
-    episode: "#618 Mother's Day",
-    timestamp: "00:22:30",
-    rating: "9.7",
-    votes: "7,420",
-  },
-  {
-    rank: "04",
-    initials: "DL",
-    name: "David Lucas",
-    role: "Legend",
-    episode: "#530 Live from Austin",
-    timestamp: "01:55:04",
-    rating: "9.6",
-    votes: "6,280",
-  },
-  {
-    rank: "05",
-    initials: "AA",
-    name: "Ahren Belisle",
-    role: "Golden Ticket",
-    episode: "#588 Debut Set",
-    timestamp: "00:33:15",
-    rating: "9.5",
-    votes: "5,912",
-  },
-];
+type LeaderboardEntry = {
+  contestantId: string;
+  contestantName: string;
+  averageRating: number;
+  performanceCount: number;
+  totalVotes: number;
+};
 
-export default function LeaderboardPage() {
+type LeaderboardResponse = {
+  data: LeaderboardEntry[];
+};
+
+async function getLeaderboard(limit: number = 25): Promise<LeaderboardResponse> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/leaderboards?limit=${limit}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return { data: [] };
+  }
+
+  return res.json();
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export default async function LeaderboardPage() {
+  const { data: leaderboard } = await getLeaderboard(50);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#0f0f0f] text-white">
       <nav
@@ -114,11 +97,10 @@ export default function LeaderboardPage() {
         <header className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <h1 className="text-6xl font-display uppercase leading-none md:text-8xl">
-              LEADERBOARD <span className="inline-block animate-bounce">🎫</span>
+              LEADERBOARD
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-zinc-400">
-              The gold standard of Kill Tony history. Ranked by the community based on set quality, roast ability, and
-              interview chaos.
+              The gold standard of Kill Tony history. Ranked by the community based on average rating across all performances.
             </p>
           </div>
           <div className="flex rounded-xl border border-white/5 bg-zinc-900/50 p-1">
@@ -140,130 +122,117 @@ export default function LeaderboardPage() {
           </div>
         </header>
 
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900 p-4 md:flex-row">
-          <div className="relative flex-1">
-            <iconify-icon icon="lucide:search" className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></iconify-icon>
-            <input
-              type="text"
-              placeholder="Filter by name or episode..."
-              className="w-full rounded-xl border border-white/10 bg-black/40 py-3 pl-12 pr-4 text-sm transition-all focus:border-[#cc0000] focus:outline-none"
-            />
+        {leaderboard.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <iconify-icon icon="lucide:trophy" className="mb-4 text-6xl text-zinc-600"></iconify-icon>
+            <h2 className="mb-2 text-2xl font-display">No Rankings Yet</h2>
+            <p className="text-zinc-500">
+              Run the worker to populate data, then rate performances to build the leaderboard.
+            </p>
           </div>
-          <div className="flex gap-2">
-            <select className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-zinc-400 outline-none focus:border-[#cc0000]">
-              <option>All Episode Formats</option>
-              <option>Arena Shows</option>
-              <option>Mothership Shows</option>
-              <option>Vulcan Shows</option>
-            </select>
-            <button
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-400 transition-all hover:bg-white/10"
-              type="button"
-            >
-              <iconify-icon icon="lucide:sliders-horizontal" className="text-xl"></iconify-icon>
-            </button>
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900 p-4 md:flex-row">
+              <div className="relative flex-1">
+                <iconify-icon icon="lucide:search" className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></iconify-icon>
+                <input
+                  type="text"
+                  placeholder="Filter by name..."
+                  className="w-full rounded-xl border border-white/10 bg-black/40 py-3 pl-12 pr-4 text-sm transition-all focus:border-[#cc0000] focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-zinc-400 outline-none focus:border-[#cc0000]">
+                  <option>Min 1 Performance</option>
+                  <option>Min 3 Performances</option>
+                  <option>Min 5 Performances</option>
+                  <option>Min 10 Performances</option>
+                </select>
+                <button
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-400 transition-all hover:bg-white/10"
+                  type="button"
+                >
+                  <iconify-icon icon="lucide:sliders-horizontal" className="text-xl"></iconify-icon>
+                </button>
+              </div>
+            </div>
 
-        <div className="mb-12 overflow-hidden rounded-2xl border border-white/5 bg-zinc-900">
-          <div className="custom-scrollbar overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-white/5 bg-white/5">
-                  {["Rank", "Contestant", "Episode", "Timestamp", "Rating", "Votes", "Jump"].map((title) => (
-                    <th
-                      key={title}
-                      className={`px-6 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500 ${
-                        title === "Rank" ? "w-16 text-left" : title === "Jump" ? "text-right" : "text-left"
-                      }`}
-                    >
-                      {title}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {leaderboardRows.map((row) => (
-                  <tr key={row.rank} className="row-hover group cursor-pointer transition-all duration-300">
-                    <td className="px-6 py-6">
-                      <span className="text-2xl font-display font-black italic leading-none text-[#cc0000]">
-                        {row.rank}
-                      </span>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-zinc-800 font-display text-xl uppercase text-zinc-500">
-                          {row.initials}
-                        </div>
-                        <div>
-                          <button className="font-bold transition-colors hover:text-[#cc0000]" type="button">
-                            {row.name}
-                          </button>
-                          <p className="text-[10px] font-black uppercase text-zinc-500">{row.role}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <button className="text-sm text-zinc-400 transition-colors hover:text-white" type="button">
-                        {row.episode}
-                      </button>
-                    </td>
-                    <td className="px-6 py-6">
-                      <span className="font-mono text-sm text-zinc-500">{row.timestamp}</span>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-2xl font-display font-bold text-[#cc0000]">{row.rating}</span>
-                        <iconify-icon icon="lucide:star" className="text-[#cc0000] text-sm fill-current"></iconify-icon>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <span className="text-sm font-medium tracking-tight text-zinc-500">{row.votes}</span>
-                    </td>
-                    <td className="px-6 py-6 text-right">
-                      <button className="btn-primary whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold" type="button">
-                        ⏱ Jump
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-4">
-          <button
-            className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 text-zinc-500 transition-all hover:text-white"
-            type="button"
-          >
-            <iconify-icon icon="lucide:chevron-left" className="text-xl"></iconify-icon>
-          </button>
-          <div className="flex gap-2">
-            {["1", "2", "3", "12"].map((label, index) => (
-              <button
-                key={label}
-                className={`flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 text-sm font-bold transition-all ${
-                  index === 0
-                    ? "bg-[#cc0000] text-white"
-                    : index === 3
-                      ? "bg-zinc-900 text-zinc-400 hover:text-white"
-                      : "bg-zinc-900 text-zinc-400 hover:text-white"
-                }`}
-                type="button"
-              >
-                {label}
-              </button>
-            ))}
-            <span className="flex h-12 w-12 items-center justify-center text-zinc-600">...</span>
-          </div>
-          <button
-            className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 text-zinc-500 transition-all hover:text-white"
-            type="button"
-          >
-            <iconify-icon icon="lucide:chevron-right" className="text-xl"></iconify-icon>
-          </button>
-        </div>
+            <div className="mb-12 overflow-hidden rounded-2xl border border-white/5 bg-zinc-900">
+              <div className="custom-scrollbar overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/5">
+                      {["Rank", "Contestant", "Avg Rating", "Performances", "Total Votes", "Profile"].map((title) => (
+                        <th
+                          key={title}
+                          className={`px-6 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500 ${
+                            title === "Rank" ? "w-16 text-left" : title === "Profile" ? "text-right" : "text-left"
+                          }`}
+                        >
+                          {title}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {leaderboard.map((entry, index) => (
+                      <tr key={entry.contestantId} className="row-hover group cursor-pointer transition-all duration-300">
+                        <td className="px-6 py-6">
+                          <span className={`text-2xl font-display font-black italic leading-none ${
+                            index < 3 ? "text-[#cc0000]" : "text-zinc-500"
+                          }`}>
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                        </td>
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-zinc-800 font-display text-xl uppercase text-zinc-500">
+                              {getInitials(entry.contestantName)}
+                            </div>
+                            <div>
+                              <Link
+                                href={`/contestants/${entry.contestantId}`}
+                                className="font-bold transition-colors hover:text-[#cc0000]"
+                              >
+                                {entry.contestantName}
+                              </Link>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-2xl font-display font-bold text-[#cc0000]">
+                              {entry.averageRating > 0 ? entry.averageRating.toFixed(1) : "—"}
+                            </span>
+                            {entry.averageRating > 0 && (
+                              <iconify-icon icon="lucide:star" className="text-[#cc0000] text-sm fill-current"></iconify-icon>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-6">
+                          <span className="text-sm font-medium text-zinc-400">{entry.performanceCount}</span>
+                        </td>
+                        <td className="px-6 py-6">
+                          <span className="text-sm font-medium tracking-tight text-zinc-500">
+                            {entry.totalVotes.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-6 text-right">
+                          <Link
+                            href={`/contestants/${entry.contestantId}`}
+                            className="btn-primary whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       <footer className="border-t border-white/5 bg-black/50 px-8 py-10">
