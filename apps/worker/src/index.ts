@@ -1,3 +1,9 @@
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load .env from project root
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
 import { extractEpisodes } from "./pipeline/extract";
 import { extractPerformances } from "./pipeline/performances";
 import { persistEpisodes, persistPerformances } from "./pipeline/persist";
