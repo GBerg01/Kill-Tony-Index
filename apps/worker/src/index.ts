@@ -8,7 +8,24 @@ const run = async () => {
   const videos = await fetchRecentVideos();
   const episodes = extractEpisodes(videos);
   const transcriptsByVideo = await fetchEpisodeTranscripts(videos);
+
+  // Debug: log transcript stats
+  let videosWithTranscripts = 0;
+  let totalSegments = 0;
+  for (const [videoId, segments] of transcriptsByVideo) {
+    if (segments.length > 0) {
+      videosWithTranscripts++;
+      totalSegments += segments.length;
+      // Show sample of first transcript
+      if (videosWithTranscripts === 1) {
+        console.log(`Sample transcript from ${videoId}:`, segments.slice(0, 5));
+      }
+    }
+  }
+  console.log(`Transcripts: ${videosWithTranscripts}/${videos.length} videos have transcripts (${totalSegments} total segments)`);
+
   const performances = extractPerformances(videos, transcriptsByVideo);
+  console.log(`Extracted ${performances.length} performances`);
 
   if (episodes.length === 0) {
     console.warn("No videos found. Check YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID.");
