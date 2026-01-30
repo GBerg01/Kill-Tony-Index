@@ -18,13 +18,31 @@ export type ExtractedPerformance = {
   introSnippet: string;
 };
 
-const NAME_REGEX = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/;
+// Matches names: "John Smith", "O'Brien", "de la Cruz", single names like "Redban"
+// Also handles ALL CAPS from auto-transcripts
+const NAME_REGEX = /([A-Z][a-zA-Z'-]*(?:\s+(?:de\s+la\s+|van\s+|von\s+|O'|Mc|Mac)?[A-Z]?[a-zA-Z'-]+)*)/i;
 
 const MENTION_PATTERNS: Array<{ pattern: RegExp; baseConfidence: number }> = [
-  { pattern: /give it up for ([^.!?]+)/i, baseConfidence: 0.88 },
-  { pattern: /put your hands together for ([^.!?]+)/i, baseConfidence: 0.86 },
-  { pattern: /your next comedian ([^.!?]+)/i, baseConfidence: 0.84 },
-  { pattern: /next up ([^.!?]+)/i, baseConfidence: 0.78 },
+  // High confidence - explicit intro phrases
+  { pattern: /give it up for ([^.!?,]+)/i, baseConfidence: 0.92 },
+  { pattern: /put your hands together for ([^.!?,]+)/i, baseConfidence: 0.90 },
+  { pattern: /please welcome ([^.!?,]+)/i, baseConfidence: 0.90 },
+  { pattern: /welcome to the stage ([^.!?,]+)/i, baseConfidence: 0.90 },
+
+  // Medium-high confidence - common Kill Tony phrases
+  { pattern: /your next comedian[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.88 },
+  { pattern: /coming to the stage[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.88 },
+  { pattern: /from the bucket[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.86 },
+  { pattern: /our next bucket pull[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.86 },
+  { pattern: /first[- ]time performer[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.85 },
+
+  // Medium confidence - generic intros
+  { pattern: /next up[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.82 },
+  { pattern: /here['']?s ([^.!?,]+)/i, baseConfidence: 0.78 },
+  { pattern: /it['']?s ([^.!?,]+)/i, baseConfidence: 0.70 },
+
+  // Lower confidence - may catch regulars
+  { pattern: /ladies and gentlemen[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.75 },
 ];
 
 const normalizeName = (raw: string): string => {
@@ -45,6 +63,41 @@ const scoreConfidence = (base: number, name: string, snippet: string): number =>
   return Math.min(0.99, Math.max(0.1, score));
 };
 
+// Known Kill Tony regulars and band members to filter out (they're not bucket pull contestants)
+const EXCLUDED_NAMES = new Set([
+  "tony hinchcliffe",
+  "tony",
+  "brian redban",
+  "redban",
+  "william montgomery",
+  "david lucas",
+  "hans kim",
+  "kam patterson",
+  "the band",
+  "joel",
+  "everybody",
+  "the crowd",
+  "austin",
+  "texas",
+]);
+
+const isValidContestantName = (name: string): boolean => {
+  const lower = name.toLowerCase();
+
+  // Filter out excluded names (regulars/hosts - unless we want to track them too)
+  // Comment this out if you want to include regulars
+  // if (EXCLUDED_NAMES.has(lower)) return false;
+
+  // Must be at least 2 characters
+  if (name.length < 2) return false;
+
+  // Filter out likely non-names (numbers, common words)
+  if (/^\d+$/.test(name)) return false;
+  if (/^(the|a|an|this|that|here|there|and|or|but)$/i.test(name)) return false;
+
+  return true;
+};
+
 const extractMentions = (segments: TranscriptSegment[]): CandidateMention[] => {
   const mentions: CandidateMention[] = [];
 
@@ -56,17 +109,21 @@ const extractMentions = (segments: TranscriptSegment[]): CandidateMention[] => {
 
     for (const { pattern, baseConfidence } of MENTION_PATTERNS) {
       const match = text.match(pattern);
-      if (!match) {
+      if (!match || !match[1]) {
         continue;
       }
 
-      const possibleName = match[1]?.match(NAME_REGEX)?.[1];
+      // Try to extract a name from the captured group
+      const captured = match[1].trim();
+      const nameMatch = captured.match(NAME_REGEX);
+      const possibleName = nameMatch?.[1] || captured.split(/[,!?.]/)[0];
+
       if (!possibleName) {
         continue;
       }
 
       const contestantName = normalizeName(possibleName);
-      if (!contestantName) {
+      if (!contestantName || !isValidContestantName(contestantName)) {
         continue;
       }
 
