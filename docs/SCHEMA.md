@@ -86,6 +86,7 @@
 export interface EpisodeSummary {
   id: string;
   title: string;
+  episodeNumber?: number;
   publishedAt: string;
   durationSeconds: number;
   youtubeUrl: string;

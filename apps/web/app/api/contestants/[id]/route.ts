@@ -11,6 +11,7 @@ type PerformanceWithEpisode = {
   id: string;
   episodeId: string;
   episodeTitle: string;
+  episodeNumber: number | null;
   episodePublishedAt: string;
   youtubeUrl: string;
   startSeconds: number;
@@ -53,6 +54,7 @@ export async function GET(
           id: p.id,
           episodeId: p.episodeId,
           episodeTitle: episode?.title || "Unknown Episode",
+          episodeNumber: episode?.episodeNumber ?? null,
           episodePublishedAt: episode?.publishedAt || "",
           youtubeUrl: episode?.youtubeUrl || "",
           startSeconds: p.startSeconds,
@@ -109,6 +111,7 @@ export async function GET(
           id: p.id,
           episodeId: p.episodeId,
           episodeTitle: episode?.title || "Unknown Episode",
+          episodeNumber: episode?.episodeNumber ?? null,
           episodePublishedAt: episode?.publishedAt || "",
           youtubeUrl: episode?.youtubeUrl || "",
           startSeconds: p.startSeconds,

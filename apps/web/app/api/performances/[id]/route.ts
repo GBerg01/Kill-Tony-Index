@@ -9,6 +9,7 @@ type PerformanceDetail = {
   id: string;
   episodeId: string;
   episodeTitle: string;
+  episodeNumber: number | null;
   episodePublishedAt: string;
   youtubeUrl: string;
   contestantId: string;
@@ -42,6 +43,7 @@ export async function GET(
       id: performance.id,
       episodeId: performance.episodeId,
       episodeTitle: episode?.title || "Unknown Episode",
+      episodeNumber: episode?.episodeNumber ?? null,
       episodePublishedAt: episode?.publishedAt || "",
       youtubeUrl: episode?.youtubeUrl || "",
       contestantId: performance.contestantId,
@@ -86,6 +88,7 @@ export async function GET(
       id: performance.id,
       episodeId: performance.episodeId,
       episodeTitle: episode?.title || "Unknown Episode",
+      episodeNumber: episode?.episodeNumber ?? null,
       episodePublishedAt: episode?.publishedAt || "",
       youtubeUrl: episode?.youtubeUrl || "",
       contestantId: performance.contestantId,

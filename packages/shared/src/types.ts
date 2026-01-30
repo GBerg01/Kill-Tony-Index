@@ -2,6 +2,7 @@ export type Episode = {
   id: string;
   youtubeId: string;
   title: string;
+  episodeNumber?: number | null;
   publishedAt: string;
   durationSeconds: number;
   youtubeUrl: string;

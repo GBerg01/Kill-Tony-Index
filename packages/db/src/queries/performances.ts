@@ -50,6 +50,7 @@ export type PerformanceDetail = {
   id: string;
   episodeId: string;
   episodeTitle: string;
+  episodeNumber: number | null;
   episodePublishedAt: string;
   youtubeUrl: string;
   contestantId: string;
@@ -65,6 +66,7 @@ export const getPerformanceById = async (pool: Pool, id: string): Promise<Perfor
     `SELECT p.id,
             p.episode_id AS "episodeId",
             e.title AS "episodeTitle",
+            e.episode_number AS "episodeNumber",
             e.published_at AS "episodePublishedAt",
             e.youtube_url AS "youtubeUrl",
             p.contestant_id AS "contestantId",
