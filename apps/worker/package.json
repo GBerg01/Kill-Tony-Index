@@ -8,7 +8,8 @@
   "dependencies": {
     "@killtony/db": "0.0.0",
     "@killtony/shared": "0.0.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@types/node": "^25.1.0",

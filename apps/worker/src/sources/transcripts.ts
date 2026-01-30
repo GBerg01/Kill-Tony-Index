@@ -1,35 +1,22 @@
+import { YoutubeTranscript } from "youtube-transcript";
+
 export type TranscriptSegment = {
   text: string;
   start: number;
   duration: number;
 };
 
-type TranscriptApiSegment = {
-  text: string;
-  start: string | number;
-  duration: string | number;
-};
-
-const normalizeSegment = (segment: TranscriptApiSegment): TranscriptSegment => ({
-  text: segment.text,
-  start: Number(segment.start),
-  duration: Number(segment.duration),
-});
-
 export const fetchTranscript = async (videoId: string): Promise<TranscriptSegment[]> => {
-  const response = await fetch(`https://youtubetranscript.com/?server_vid2=${videoId}`);
+  try {
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
 
-  if (!response.ok) {
-    return [];
+    return transcript.map((segment) => ({
+      text: segment.text,
+      start: segment.offset / 1000, // Convert ms to seconds
+      duration: segment.duration / 1000,
+    }));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch transcript for ${videoId}: ${message}`);
   }
-
-  const payload = (await response.json()) as TranscriptApiSegment[];
-
-  if (!Array.isArray(payload)) {
-    return [];
-  }
-
-  return payload
-    .map(normalizeSegment)
-    .filter((segment) => segment.text && !Number.isNaN(segment.start));
 };
