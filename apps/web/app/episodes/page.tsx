@@ -1,57 +1,74 @@
 import Link from "next/link";
 
-const episodes = [
-  {
-    title: "Episode #642",
-    date: "Feb 12, 2024 • Austin, TX",
-    moments: "8 MOMENTS",
-    guests: ["Joe Rogan", "Mark Normand"],
-  },
-  {
-    title: "Episode #641",
-    date: "Feb 05, 2024 • Austin, TX",
-    moments: "12 MOMENTS",
-    guests: ["Shane Gillis"],
-  },
-  {
-    title: "Episode #640",
-    date: "Jan 29, 2024 • Austin, TX",
-    moments: "6 MOMENTS",
-    guests: ["Adam Ray", "Tony Hinchcliffe"],
-  },
-  {
-    title: "Episode #639",
-    date: "Jan 22, 2024 • Austin, TX",
-    moments: "10 MOMENTS",
-    guests: ["Dr. Phil (Adam Ray)", "Sam Tallent"],
-  },
-  {
-    title: "Episode #638",
-    date: "Jan 15, 2024",
-    moments: "14 MOMENTS",
-    guests: ["Bert Kreischer", "Whitney Cummings"],
-  },
-  {
-    title: "Episode #637",
-    date: "Jan 08, 2024",
-    moments: "9 MOMENTS",
-    guests: ["Theo Von"],
-  },
-  {
-    title: "Episode #636",
-    date: "Jan 01, 2024",
-    moments: "5 MOMENTS",
-    guests: ["Big Jay Oakerson"],
-  },
-  {
-    title: "Episode #635",
-    date: "Dec 25, 2023",
-    moments: "11 MOMENTS",
-    guests: ["Holiday Special", "Multiple Guests"],
-  },
-];
+type Episode = {
+  id: string;
+  youtubeId: string;
+  title: string;
+  episodeNumber?: number | null;
+  publishedAt: string;
+  durationSeconds: number;
+  youtubeUrl: string;
+  performanceCount?: number;
+};
 
-export default function EpisodesPage() {
+type EpisodesResponse = {
+  data: Episode[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+async function getEpisodes(page: number = 1, limit: number = 20): Promise<EpisodesResponse> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/episodes?page=${page}&limit=${limit}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return {
+      data: [],
+      pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    };
+  }
+
+  return res.json();
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
+function extractEpisodeNumber(title: string): string | null {
+  const match = title.match(/#(\d+)/);
+  return match ? match[1] : null;
+}
+
+export default async function EpisodesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const currentPage = parseInt(params.page || "1", 10);
+  const { data: episodes, pagination } = await getEpisodes(currentPage, 12);
+
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white">
       <nav
@@ -114,7 +131,9 @@ export default function EpisodesPage() {
             <h1 className="mb-2 text-6xl font-display tracking-tight md:text-8xl">ALL EPISODES</h1>
             <p className="flex items-center gap-3 text-zinc-500">
               <span className="h-px w-8 bg-[#cc0000]"></span>
-              <span className="text-sm font-medium uppercase tracking-widest">648 Episodes Indexed</span>
+              <span className="text-sm font-medium uppercase tracking-widest">
+                {pagination.total} Episodes Indexed
+              </span>
             </p>
           </div>
 
@@ -135,94 +154,121 @@ export default function EpisodesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {episodes.map((episode) => (
-            <article
-              key={episode.title}
-              className="group flex flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900 p-6 transition-all duration-300 hover:-translate-y-1 glow-red"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="mb-0.5 text-3xl font-display tracking-wide">{episode.title}</h4>
-                  <p className="text-xs font-medium uppercase tracking-tight text-zinc-500">{episode.date}</p>
-                </div>
-                <span className="rounded-md border border-white/10 bg-zinc-800 px-2 py-1 text-[10px] font-black text-zinc-400">
-                  {episode.moments}
-                </span>
-              </div>
-
-              <div className="flex min-h-[56px] flex-wrap gap-1.5 content-start">
-                {episode.guests.map((guest) => (
-                  <span
-                    key={guest}
-                    className="rounded bg-white/5 px-2 py-1 text-[11px] font-bold uppercase text-zinc-300"
-                  >
-                    {guest}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-auto flex flex-col gap-2 border-t border-white/5 pt-4">
-                <button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-zinc-800 py-3 text-xs font-black uppercase tracking-wider transition-all group-hover:border-zinc-600 hover:bg-zinc-700"
-                  type="button"
-                >
-                  View Performances
-                  <iconify-icon
-                    icon="lucide:arrow-right"
-                    className="text-sm opacity-50 transition-opacity group-hover:opacity-100"
-                  ></iconify-icon>
-                </button>
-                <button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#cc0000]/10 py-3 text-xs font-black uppercase tracking-wider text-[#cc0000] transition-all hover:bg-[#cc0000]/20"
-                  type="button"
-                >
-                  <iconify-icon icon="lucide:youtube" className="text-lg"></iconify-icon> Watch Full Episode
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-20 flex flex-col items-center gap-6">
-          <div className="flex items-center gap-2">
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-zinc-500 transition-colors hover:text-white"
-              type="button"
-            >
-              <iconify-icon icon="lucide:chevron-left"></iconify-icon>
-            </button>
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#cc0000] text-sm font-black text-white">
-              1
-            </button>
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-sm font-black text-zinc-400 transition-colors hover:text-white"
-              type="button"
-            >
-              2
-            </button>
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-sm font-black text-zinc-400 transition-colors hover:text-white"
-              type="button"
-            >
-              3
-            </button>
-            <span className="px-2 text-zinc-600">...</span>
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-sm font-black text-zinc-400 transition-colors hover:text-white"
-              type="button"
-            >
-              65
-            </button>
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-zinc-500 transition-colors hover:text-white"
-              type="button"
-            >
-              <iconify-icon icon="lucide:chevron-right"></iconify-icon>
-            </button>
+        {episodes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <iconify-icon icon="lucide:video-off" className="mb-4 text-6xl text-zinc-600"></iconify-icon>
+            <h2 className="mb-2 text-2xl font-display">No Episodes Found</h2>
+            <p className="text-zinc-500">
+              Run the worker to populate the database with Kill Tony episodes.
+            </p>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Showing 8 of 648 Episodes</p>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {episodes.map((episode) => {
+              const episodeNum = episode.episodeNumber || extractEpisodeNumber(episode.title);
+              return (
+                <article
+                  key={episode.id}
+                  className="group flex flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900 p-6 transition-all duration-300 hover:-translate-y-1 glow-red"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="mb-0.5 text-3xl font-display tracking-wide">
+                        {episodeNum ? `Episode #${episodeNum}` : episode.title}
+                      </h4>
+                      <p className="text-xs font-medium uppercase tracking-tight text-zinc-500">
+                        {formatDate(episode.publishedAt)}
+                        {episode.durationSeconds > 0 && ` • ${formatDuration(episode.durationSeconds)}`}
+                      </p>
+                    </div>
+                    {episode.performanceCount !== undefined && (
+                      <span className="rounded-md border border-white/10 bg-zinc-800 px-2 py-1 text-[10px] font-black text-zinc-400">
+                        {episode.performanceCount} MOMENTS
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="line-clamp-2 text-sm text-zinc-400">{episode.title}</p>
+
+                  <div className="mt-auto flex flex-col gap-2 border-t border-white/5 pt-4">
+                    <Link
+                      href={`/episodes/${episode.id}`}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-zinc-800 py-3 text-xs font-black uppercase tracking-wider transition-all group-hover:border-zinc-600 hover:bg-zinc-700"
+                    >
+                      View Performances
+                      <iconify-icon
+                        icon="lucide:arrow-right"
+                        className="text-sm opacity-50 transition-opacity group-hover:opacity-100"
+                      ></iconify-icon>
+                    </Link>
+                    <a
+                      href={episode.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#cc0000]/10 py-3 text-xs font-black uppercase tracking-wider text-[#cc0000] transition-all hover:bg-[#cc0000]/20"
+                    >
+                      <iconify-icon icon="lucide:youtube" className="text-lg"></iconify-icon> Watch Full Episode
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {pagination.totalPages > 1 && (
+          <div className="mt-20 flex flex-col items-center gap-6">
+            <div className="flex items-center gap-2">
+              {currentPage > 1 && (
+                <Link
+                  href={`/episodes?page=${currentPage - 1}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-zinc-500 transition-colors hover:text-white"
+                >
+                  <iconify-icon icon="lucide:chevron-left"></iconify-icon>
+                </Link>
+              )}
+
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <Link
+                    key={pageNum}
+                    href={`/episodes?page=${pageNum}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-black ${
+                      pageNum === currentPage
+                        ? "bg-[#cc0000] text-white"
+                        : "border border-white/5 bg-zinc-900 text-zinc-400 transition-colors hover:text-white"
+                    }`}
+                  >
+                    {pageNum}
+                  </Link>
+                );
+              })}
+
+              {currentPage < pagination.totalPages && (
+                <Link
+                  href={`/episodes?page=${currentPage + 1}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/5 bg-zinc-900 text-zinc-500 transition-colors hover:text-white"
+                >
+                  <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+                </Link>
+              )}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+              Page {currentPage} of {pagination.totalPages} • {pagination.total} Episodes
+            </p>
+          </div>
+        )}
       </main>
 
       <footer className="border-t border-white/5 bg-zinc-950 py-12">
