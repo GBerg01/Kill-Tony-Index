@@ -5,12 +5,20 @@ import { getPrismaClient } from "@killtony/db";
 
 export const persistEpisodes = async (episodes: ExtractedEpisode[]) => {
   const prisma = getPrismaClient();
+  let created = 0;
+  let updated = 0;
 
   for (const episode of episodes) {
+    const existing = await prisma.episode.findUnique({
+      where: { youtubeId: episode.youtubeId },
+      select: { id: true },
+    });
+
     await prisma.episode.upsert({
       where: { youtubeId: episode.youtubeId },
       update: {
         title: episode.title,
+        episodeNumber: episode.episodeNumber,
         publishedAt: new Date(episode.publishedAt),
         durationSeconds: episode.durationSeconds,
         youtubeUrl: episode.youtubeUrl,
@@ -19,16 +27,26 @@ export const persistEpisodes = async (episodes: ExtractedEpisode[]) => {
         id: crypto.randomUUID(),
         youtubeId: episode.youtubeId,
         title: episode.title,
+        episodeNumber: episode.episodeNumber,
         publishedAt: new Date(episode.publishedAt),
         durationSeconds: episode.durationSeconds,
         youtubeUrl: episode.youtubeUrl,
       },
     });
+
+    if (existing) {
+      updated++;
+    } else {
+      created++;
+    }
   }
+
+  console.info(`Episodes: ${created} created, ${updated} updated`);
 };
 
 export const persistPerformances = async (performances: ExtractedPerformance[]) => {
   if (performances.length === 0) {
+    console.info("Performances: No performances to persist");
     return;
   }
 
@@ -40,9 +58,15 @@ export const persistPerformances = async (performances: ExtractedPerformance[]) 
   });
   const episodeIdByYoutubeId = new Map(episodes.map((episode: { youtubeId: string; id: string }) => [episode.youtubeId, episode.id]));
 
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+  let contestantsCreated = 0;
+
   for (const performance of performances) {
     const episodeId = episodeIdByYoutubeId.get(performance.episodeYoutubeId);
     if (!episodeId) {
+      skipped++;
       continue;
     }
 
@@ -59,6 +83,7 @@ export const persistPerformances = async (performances: ExtractedPerformance[]) 
         },
         select: { id: true },
       });
+      contestantsCreated++;
     }
 
     const existing = await prisma.performance.findFirst({
@@ -79,6 +104,7 @@ export const persistPerformances = async (performances: ExtractedPerformance[]) 
           introSnippet: performance.introSnippet,
         },
       });
+      updated++;
       continue;
     }
 
@@ -93,5 +119,9 @@ export const persistPerformances = async (performances: ExtractedPerformance[]) 
         introSnippet: performance.introSnippet,
       },
     });
+    created++;
   }
+
+  console.info(`Performances: ${created} created, ${updated} updated, ${skipped} skipped`);
+  console.info(`Contestants: ${contestantsCreated} new contestants created`);
 };

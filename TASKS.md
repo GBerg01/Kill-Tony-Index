@@ -2,10 +2,27 @@
 
 > Source of truth for project progress. Update after every work session.
 
-## Current Phase: 4 — Community Features
+## Current Phase: 5 — Worker Improvements & Data Population
 
 ## In Progress
 <!-- If stopping mid-task, describe exactly where you left off -->
+
+### Worker Improvements (2026-01-30)
+The worker pipeline has been significantly enhanced to be production-ready:
+- [x] Added pagination to fetch ALL videos (700+) from the channel
+- [x] Added episode number extraction from video titles
+- [x] Expanded performance extraction patterns (13 patterns vs original 4)
+- [x] Fixed NAME_REGEX to handle single names, ALL CAPS, and edge cases
+- [x] Added retry logic with exponential backoff for transcript fetching
+- [x] Added concurrency control to avoid rate limiting
+- [x] Added CLI arguments: `--full`, `--dry-run`, `--max=N`
+- [x] Added `episodeNumber` field to Episode schema
+- [x] Episode filtering to skip clips/compilations
+
+**Next Steps:**
+1. Get a valid YOUTUBE_API_KEY and run the worker to populate the database
+2. Wire up UI pages to use database API routes instead of mock data
+3. Test the full data flow end-to-end
 
 ## Up Next
 ## Phase 2 — Search

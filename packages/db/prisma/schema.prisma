@@ -23,6 +23,7 @@ model Episode {
   id              String   @id @db.Uuid
   youtubeId       String   @unique
   title           String
+  episodeNumber   Int?
   publishedAt     DateTime?
   durationSeconds Int?
   youtubeUrl      String
