@@ -18,3 +18,4 @@ packages/db/node_modules/.prisma/
 # Build output
 apps/**/dist/
 packages/**/dist/
+*.tsbuildinfo
