@@ -4,8 +4,8 @@ export { listEpisodes, getEpisodeById, getPerformancesByEpisodeId } from "./quer
 export type { PerformanceWithContestant, PaginationParams, PaginatedResult } from "./queries/episodes";
 export { listContestants, getContestantById, getPerformancesByContestantId } from "./queries/contestants";
 export type { PerformanceWithEpisode } from "./queries/contestants";
-export { listPerformances, getPerformanceById } from "./queries/performances";
-export type { PerformanceDetail } from "./queries/performances";
+export { listPerformances, listPerformancesWithDetails, listTrendingPerformances, getPerformanceById } from "./queries/performances";
+export type { PerformanceDetail, PerformanceListItem, TrendingPerformance } from "./queries/performances";
 export { searchAll } from "./queries/search";
 export type { SearchContestantResult, SearchEpisodeResult, SearchResults } from "./queries/search";
 export { listReviewQueue } from "./queries/review";

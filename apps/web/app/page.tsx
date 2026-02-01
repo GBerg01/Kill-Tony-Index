@@ -1,6 +1,123 @@
 import Link from "next/link";
 
-export default function HomePage() {
+type ConfidenceLevel = "High" | "Medium" | "Low";
+
+type TrendingPerformance = {
+  id: string;
+  contestantName: string;
+  episodeNumber: number;
+  episodeTitle: string;
+  ratingAvg: number;
+  ratingCount: number;
+  commentCount: number;
+  snippet: string;
+  confidence: ConfidenceLevel;
+  youtubeUrl: string;
+  youtubeJumpUrl: string;
+};
+
+type Episode = {
+  id: string;
+  title: string;
+  publishedAt: string;
+  youtubeUrl: string;
+  episodeNumber?: number;
+};
+
+type LeaderboardEntry = {
+  contestantId: string;
+  contestantName: string;
+  averageRating: number;
+  performanceCount: number;
+  totalVotes: number;
+};
+
+type Contestant = {
+  id: string;
+  displayName: string;
+  performanceCount?: number;
+  averageRating?: number;
+};
+
+async function getTrendingPerformances(): Promise<TrendingPerformance[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/performances/trending?limit=3`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getLatestEpisodes(): Promise<Episode[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/episodes?limit=2`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getTopContestants(): Promise<LeaderboardEntry[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/leaderboards?limit=2`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/leaderboards?limit=3`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch {
+    return [];
+  }
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export default async function HomePage() {
+  const [trendingPerformances, latestEpisodes, topContestants, leaderboard] = await Promise.all([
+    getTrendingPerformances(),
+    getLatestEpisodes(),
+    getTopContestants(),
+    getLeaderboard(),
+  ]);
+
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white selection:bg-red-600/30">
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0f0f0f]/80 px-4 py-3 backdrop-blur-xl lg:px-8">
@@ -82,30 +199,30 @@ export default function HomePage() {
               Results open directly at the exact timestamp on YouTube • No scrubbing
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <button
+              <Link
+                href="/performances"
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/10"
-                type="button"
               >
                 <iconify-icon icon="lucide:flame" className="text-orange-500"></iconify-icon> Top Performances
-              </button>
+              </Link>
               <button
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/10"
                 type="button"
               >
                 <iconify-icon icon="lucide:dices" className="text-blue-400"></iconify-icon> Random Set
               </button>
-              <button
+              <Link
+                href="/episodes"
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/10"
-                type="button"
               >
                 <iconify-icon icon="lucide:calendar" className="text-emerald-400"></iconify-icon> Latest Episode
-              </button>
-              <button
+              </Link>
+              <Link
+                href="/leaderboard"
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/10"
-                type="button"
               >
                 <iconify-icon icon="lucide:trophy" className="text-yellow-500"></iconify-icon> Leaderboard
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -120,84 +237,72 @@ export default function HomePage() {
               View all <iconify-icon icon="lucide:chevron-right"></iconify-icon>
             </Link>
           </div>
-          <div className="custom-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4 pb-6">
-            {[
-              {
-                name: "Casey Rocket",
-                episode: "Episode #642 (Guests: Joe Rogan)",
-                rating: "9.8",
-                votes: "1,402 votes",
-                comments: "84",
-                quote: "\"Never made it as a wise man... I couldn't cut it as a poor man stealing...\"",
-                confidence: "high",
-                note: "Opens YouTube at the exact moment • Skip to set",
-              },
-              {
-                name: "Kam Patterson",
-                episode: "Episode #641 (Guests: Shane Gillis)",
-                rating: "9.2",
-                votes: "856 votes",
-                comments: "42",
-                quote: "\"I love big rocks, you know what I'm saying? Look at this rock right here...\"",
-                confidence: "medium",
-                note: "Opens YouTube at the exact moment • No scrubbing",
-              },
-              {
-                name: "Hans Kim",
-                episode: "Episode #642 (Guests: Joe Rogan)",
-                rating: "8.5",
-                votes: "2,110 votes",
-                comments: "129",
-                quote: "\"This is a nice song. It's great to be here in Austin, Texas...\"",
-                confidence: "high",
-                note: "Instant skip to performance • Jump instantly",
-              },
-            ].map((card) => (
-              <div
-                key={card.name}
-                className="glow-red flex min-w-[340px] flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900/50 p-6"
-              >
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`flex items-center gap-1.5 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      card.confidence === "high" ? "badge-confidence-high" : "badge-confidence-medium"
-                    }`}
-                  >
-                    <iconify-icon icon={card.confidence === "high" ? "lucide:shield-check" : "lucide:info"}></iconify-icon>
-                    Confidence: {card.confidence === "high" ? "High" : "Med"}
+          {trendingPerformances.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-zinc-900/50 py-16 text-center">
+              <div className="mb-4 text-4xl opacity-50">🎤</div>
+              <h3 className="mb-2 text-lg font-medium">No performances yet</h3>
+              <p className="max-w-md text-sm text-zinc-500">
+                Run the worker to populate the database with Kill Tony episode data.
+              </p>
+            </div>
+          ) : (
+            <div className="custom-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4 pb-6">
+              {trendingPerformances.map((card) => (
+                <div
+                  key={card.id}
+                  className="glow-red flex min-w-[340px] flex-col gap-4 rounded-2xl border border-white/5 bg-zinc-900/50 p-6"
+                >
+                  <div className="flex items-start justify-between">
+                    <div
+                      className={`flex items-center gap-1.5 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        card.confidence === "High" ? "badge-confidence-high" : "badge-confidence-medium"
+                      }`}
+                    >
+                      <iconify-icon icon={card.confidence === "High" ? "lucide:shield-check" : "lucide:info"}></iconify-icon>
+                      Confidence: {card.confidence}
+                    </div>
+                    <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-400">
+                      YOUTUBE <iconify-icon icon="lucide:external-link"></iconify-icon>
+                    </span>
                   </div>
-                  <span className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-400">
-                    YOUTUBE <iconify-icon icon="lucide:external-link"></iconify-icon>
-                  </span>
-                </div>
-                <div>
-                  <h3 className="mb-1 text-2xl font-display tracking-wider">{card.name}</h3>
-                  <p className="text-sm font-medium text-zinc-500">{card.episode}</p>
-                </div>
-                <div className="flex items-center gap-4 border-y border-white/5 py-2">
-                  <div className="flex items-center gap-1 text-[#cc0000]">
-                    <iconify-icon icon="lucide:star" className="fill-current"></iconify-icon>
-                    <span className="font-bold">{card.rating}</span>
+                  <div>
+                    <h3 className="mb-1 text-2xl font-display tracking-wider">{card.contestantName}</h3>
+                    <p className="text-sm font-medium text-zinc-500">Episode #{card.episodeNumber}</p>
                   </div>
-                  <span className="text-xs text-zinc-500">{card.votes}</span>
-                  <div className="ml-auto flex items-center gap-1 text-zinc-400">
-                    <iconify-icon icon="lucide:message-square"></iconify-icon>
-                    <span className="text-xs">{card.comments}</span>
+                  <div className="flex items-center gap-4 border-y border-white/5 py-2">
+                    <div className="flex items-center gap-1 text-[#cc0000]">
+                      <iconify-icon icon="lucide:star" className="fill-current"></iconify-icon>
+                      <span className="font-bold">{card.ratingAvg.toFixed(1)}</span>
+                    </div>
+                    <span className="text-xs text-zinc-500">{card.ratingCount} votes</span>
+                    <div className="ml-auto flex items-center gap-1 text-zinc-400">
+                      <iconify-icon icon="lucide:message-square"></iconify-icon>
+                      <span className="text-xs">{card.commentCount}</span>
+                    </div>
+                  </div>
+                  <p className="snippet-clamp text-sm italic text-zinc-400">{card.snippet || "Performance snippet"}</p>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <a
+                      href={card.youtubeJumpUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-primary w-full rounded-xl py-3 font-bold text-center"
+                    >
+                      ⏱ Jump to moment (YouTube)
+                    </a>
+                    <a
+                      href={card.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-secondary w-full rounded-xl py-3 text-sm font-bold text-zinc-300 text-center"
+                    >
+                      ▶ Watch full episode
+                    </a>
                   </div>
                 </div>
-                <p className="snippet-clamp text-sm italic text-zinc-400">{card.quote}</p>
-                <div className="mt-auto flex flex-col gap-2">
-                  <button className="btn-primary w-full rounded-xl py-3 font-bold" type="button">
-                    ⏱ Jump to moment (YouTube)
-                  </button>
-                  <button className="btn-secondary w-full rounded-xl py-3 text-sm font-bold text-zinc-300" type="button">
-                    ▶ Watch full episode
-                  </button>
-                  <p className="mt-1 text-center text-[10px] uppercase tracking-tighter text-zinc-500">{card.note}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 py-12 lg:grid-cols-3 lg:px-8">
@@ -211,81 +316,74 @@ export default function HomePage() {
                 Browse History
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {[
-                {
-                  title: "Episode #642",
-                  date: "Released Feb 12, 2024",
-                  moments: "8 MOMENTS",
-                  guests: ["Joe Rogan", "Mark Normand"],
-                },
-                {
-                  title: "Episode #641",
-                  date: "Released Feb 05, 2024",
-                  moments: "12 MOMENTS",
-                  guests: ["Shane Gillis", "Matt McCusker"],
-                },
-              ].map((episode) => (
-                <div key={episode.title} className="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900 p-5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-2xl font-display tracking-wider">{episode.title}</h4>
-                      <p className="text-xs text-zinc-500">{episode.date}</p>
+            {latestEpisodes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-zinc-900 py-12 text-center">
+                <div className="mb-3 text-3xl opacity-50">📺</div>
+                <p className="text-sm text-zinc-500">No episodes yet. Run the worker to populate data.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {latestEpisodes.map((episode) => (
+                  <div key={episode.id} className="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900 p-5">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-2xl font-display tracking-wider">{episode.title}</h4>
+                        <p className="text-xs text-zinc-500">Released {formatDate(episode.publishedAt)}</p>
+                      </div>
                     </div>
-                    <span className="rounded bg-zinc-800 px-2 py-1 text-[10px] font-bold text-zinc-400">
-                      {episode.moments}
-                    </span>
+                    <div className="mt-2 flex gap-2">
+                      <Link
+                        href={`/episodes/${episode.id}`}
+                        className="flex-1 rounded-lg bg-zinc-800 py-2 text-xs font-bold text-center transition-colors hover:bg-zinc-700"
+                      >
+                        View Performances
+                      </Link>
+                      <a
+                        href={episode.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg bg-[#cc0000]/10 px-3 py-2 text-xs font-bold text-[#cc0000] transition-colors hover:bg-[#cc0000]/20"
+                      >
+                        <iconify-icon icon="lucide:youtube"></iconify-icon>
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {episode.guests.map((guest) => (
-                      <span key={guest} className="rounded bg-white/5 px-2 py-1 text-[10px] text-zinc-300">
-                        {guest}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      className="flex-1 rounded-lg bg-zinc-800 py-2 text-xs font-bold transition-colors hover:bg-zinc-700"
-                      type="button"
-                    >
-                      View Performances
-                    </button>
-                    <button
-                      className="rounded-lg bg-[#cc0000]/10 px-3 py-2 text-xs font-bold text-[#cc0000] transition-colors hover:bg-[#cc0000]/20"
-                      type="button"
-                    >
-                      <iconify-icon icon="lucide:youtube"></iconify-icon>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-12">
               <div className="mb-8 flex items-center gap-3">
                 <div className="h-8 w-2 rounded-full bg-[#cc0000]"></div>
                 <h2 className="text-3xl font-display tracking-wider">Top Contestants</h2>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {[
-                  { initials: "CP", name: "Kam Patterson", meta: "24 sets • 8.9 Avg" },
-                  { initials: "WM", name: "William Montgomery", meta: "312 sets • 9.4 Avg" },
-                ].map((contestant) => (
-                  <div
-                    key={contestant.name}
-                    className="flex items-center gap-4 rounded-xl border border-white/5 bg-zinc-900 p-5"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 font-bold text-zinc-500">
-                      {contestant.initials}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-display tracking-wide">{contestant.name}</h4>
-                      <p className="text-[10px] uppercase text-zinc-500">{contestant.meta}</p>
-                    </div>
-                    <iconify-icon icon="lucide:chevron-right" className="text-zinc-600"></iconify-icon>
-                  </div>
-                ))}
-              </div>
+              {topContestants.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-zinc-900 py-12 text-center">
+                  <div className="mb-3 text-3xl opacity-50">🎭</div>
+                  <p className="text-sm text-zinc-500">No contestant data yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {topContestants.map((contestant) => (
+                    <Link
+                      key={contestant.contestantId}
+                      href={`/contestants/${contestant.contestantId}`}
+                      className="flex items-center gap-4 rounded-xl border border-white/5 bg-zinc-900 p-5 transition-colors hover:border-white/10"
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 font-bold text-zinc-500">
+                        {getInitials(contestant.contestantName)}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-display tracking-wide">{contestant.contestantName}</h4>
+                        <p className="text-[10px] uppercase text-zinc-500">
+                          {contestant.performanceCount} sets • {contestant.averageRating.toFixed(1)} Avg
+                        </p>
+                      </div>
+                      <iconify-icon icon="lucide:chevron-right" className="text-zinc-600"></iconify-icon>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -297,34 +395,40 @@ export default function HomePage() {
               </div>
               <iconify-icon icon="lucide:award" className="text-2xl text-yellow-500"></iconify-icon>
             </div>
-            <div className="space-y-4">
-              {[
-                { rank: "01", name: "William Montgomery", meta: "Ep. #500 • 1:12:45", score: "9.9", votes: "3k+" },
-                { rank: "02", name: "David Lucas", meta: "Ep. #412 • 0:45:12", score: "9.7", votes: "2.1k" },
-                { rank: "03", name: "Ali Macofsky", meta: "Ep. #320 • 0:15:33", score: "9.6", votes: "1.8k" },
-              ].map((entry, index) => (
-                <div
-                  key={entry.rank}
-                  className={`group flex cursor-pointer items-center gap-4 ${index > 0 ? "border-t border-white/5 pt-4" : ""}`}
-                >
-                  <span className="text-xl font-black italic text-zinc-700">{entry.rank}</span>
-                  <div className="flex-1">
-                    <p className="text-lg font-display tracking-wide">{entry.name}</p>
-                    <p className="text-[10px] text-zinc-500">{entry.meta}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-[#cc0000]">{entry.score}</p>
-                    <p className="text-[9px] font-black uppercase text-zinc-600">{entry.votes}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              className="mt-8 w-full rounded-xl bg-zinc-800 py-3 text-xs font-bold uppercase tracking-widest transition-all hover:bg-zinc-700"
-              type="button"
+            {leaderboard.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="mb-3 text-2xl opacity-50">🏆</div>
+                <p className="text-xs text-zinc-500">No leaderboard data yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {leaderboard.map((entry, index) => (
+                  <Link
+                    key={entry.contestantId}
+                    href={`/contestants/${entry.contestantId}`}
+                    className={`group flex cursor-pointer items-center gap-4 ${index > 0 ? "border-t border-white/5 pt-4" : ""}`}
+                  >
+                    <span className="text-xl font-black italic text-zinc-700">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-lg font-display tracking-wide">{entry.contestantName}</p>
+                      <p className="text-[10px] text-zinc-500">{entry.performanceCount} performances</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-[#cc0000]">{entry.averageRating.toFixed(1)}</p>
+                      <p className="text-[9px] font-black uppercase text-zinc-600">{entry.totalVotes} votes</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Link
+              href="/leaderboard"
+              className="mt-8 block w-full rounded-xl bg-zinc-800 py-3 text-center text-xs font-bold uppercase tracking-widest transition-all hover:bg-zinc-700"
             >
               Full Leaderboard
-            </button>
+            </Link>
           </aside>
         </section>
       </main>
