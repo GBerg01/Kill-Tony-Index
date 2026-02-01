@@ -4,87 +4,173 @@ export type TranscriptSegment = {
   duration: number;
 };
 
-type TranscriptApiSegment = {
-  text: string;
-  start: string | number;
-  duration: string | number;
-};
-
 type TranscriptOptions = {
   maxRetries?: number;
   retryDelayMs?: number;
   verbose?: boolean;
 };
 
-const normalizeSegment = (segment: TranscriptApiSegment): TranscriptSegment => ({
-  text: segment.text,
-  start: Number(segment.start),
-  duration: Number(segment.duration),
-});
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const decodeEntities = (text: string): string =>
+  text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/\n/g, " ")
+    .trim();
+
+const extractCaptionTracks = (html: string): unknown[] | null => {
+  const marker = '"captionTracks":';
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  const startIndex = html.indexOf("[", markerIndex);
+  if (startIndex === -1) {
+    return null;
+  }
+
+  let depth = 0;
+  let endIndex = -1;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = startIndex; i < html.length; i += 1) {
+    const char = html[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === "[") {
+      depth += 1;
+    } else if (char === "]") {
+      depth -= 1;
+      if (depth === 0) {
+        endIndex = i + 1;
+        break;
+      }
+    }
+  }
+
+  if (endIndex === -1) {
+    return null;
+  }
+
+  const raw = html.slice(startIndex, endIndex);
+
+  try {
+    return JSON.parse(raw) as unknown[];
+  } catch {
+    return null;
+  }
+};
+
+const getCaptionUrl = async (videoId: string): Promise<string | null> => {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const html = await response.text();
+  const tracks = extractCaptionTracks(html);
+
+  if (!tracks || tracks.length === 0) {
+    return null;
+  }
+
+  const trackList = tracks.filter(
+    (track) => track && typeof track === "object"
+  ) as Array<{
+    baseUrl?: string;
+    languageCode?: string;
+    kind?: string;
+  }>;
+
+  const english = trackList.find(
+    (track) => track.languageCode === "en" && track.kind !== "asr"
+  );
+  const autoEnglish = trackList.find(
+    (track) => track.languageCode === "en" && track.kind === "asr"
+  );
+  const fallback = trackList[0];
+
+  return english?.baseUrl ?? autoEnglish?.baseUrl ?? fallback?.baseUrl ?? null;
+};
+
+const parseTimedTextXml = (xml: string): TranscriptSegment[] => {
+  const segments: TranscriptSegment[] = [];
+  const regex = /<text\s+start="([^"]+)"\s+dur="([^"]+)"[^>]*>([\s\S]*?)<\/text>/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(xml)) !== null) {
+    const start = Number.parseFloat(match[1]);
+    const duration = Number.parseFloat(match[2]);
+    const text = decodeEntities(match[3]);
+
+    if (text && !Number.isNaN(start)) {
+      segments.push({ text, start, duration });
+    }
+  }
+
+  return segments;
+};
+
 /**
- * Fetch transcript from youtubetranscript.com with retry logic
+ * Fetch transcript by scraping YouTube's caption tracks directly.
  */
 export const fetchTranscript = async (
   videoId: string,
   options: TranscriptOptions = {}
 ): Promise<TranscriptSegment[]> => {
   const { maxRetries = 3, retryDelayMs = 1000, verbose = false } = options;
-
   let lastError: Error | null = null;
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
     try {
-      const response = await fetch(`https://youtubetranscript.com/?server_vid2=${videoId}`);
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limited - wait longer
-          if (verbose) {
-            console.warn(`Rate limited fetching transcript for ${videoId}, waiting...`);
-          }
-          await sleep(retryDelayMs * attempt * 2);
-          continue;
-        }
-
-        if (response.status === 404) {
-          // No transcript available for this video
-          if (verbose) {
-            console.info(`No transcript available for ${videoId}`);
-          }
-          return [];
-        }
-
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      // Check if response is valid JSON
-      let payload: unknown;
-      try {
-        payload = JSON.parse(text);
-      } catch {
-        // Sometimes the service returns HTML error pages
+      const captionUrl = await getCaptionUrl(videoId);
+      if (!captionUrl) {
         if (verbose) {
-          console.warn(`Invalid JSON response for ${videoId}`);
-        }
-        await sleep(retryDelayMs * attempt);
-        continue;
-      }
-
-      if (!Array.isArray(payload)) {
-        if (verbose) {
-          console.warn(`Unexpected response format for ${videoId}`);
+          console.info(`No captions found for ${videoId}`);
         }
         return [];
       }
 
-      const segments = (payload as TranscriptApiSegment[])
-        .map(normalizeSegment)
-        .filter((segment) => segment.text && !Number.isNaN(segment.start));
+      const response = await fetch(captionUrl);
+      if (!response.ok) {
+        throw new Error(`Caption fetch HTTP ${response.status}`);
+      }
+
+      const xml = await response.text();
+      const segments = parseTimedTextXml(xml);
 
       if (verbose && segments.length > 0) {
         console.info(`Fetched ${segments.length} transcript segments for ${videoId}`);
@@ -96,7 +182,9 @@ export const fetchTranscript = async (
 
       if (attempt < maxRetries) {
         if (verbose) {
-          console.warn(`Attempt ${attempt}/${maxRetries} failed for ${videoId}: ${lastError.message}`);
+          console.warn(
+            `Attempt ${attempt}/${maxRetries} failed for ${videoId}: ${lastError.message}`
+          );
         }
         await sleep(retryDelayMs * attempt);
       }
@@ -104,7 +192,9 @@ export const fetchTranscript = async (
   }
 
   if (verbose) {
-    console.error(`Failed to fetch transcript for ${videoId} after ${maxRetries} attempts: ${lastError?.message}`);
+    console.error(
+      `Failed to fetch transcript for ${videoId} after ${maxRetries} attempts: ${lastError?.message}`
+    );
   }
 
   return [];

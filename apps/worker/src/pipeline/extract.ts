@@ -12,6 +12,7 @@ export type ExtractedEpisode = {
 /**
  * Extract episode number from Kill Tony video titles.
  * Common formats:
+ * - "KT #746 - ADAM RAY + IAN EDWARDS"
  * - "KILL TONY #700"
  * - "Kill Tony Episode 700"
  * - "KILL TONY - Episode #700"
@@ -45,8 +46,10 @@ const extractEpisodeNumber = (title: string): number | null => {
 export const isKillTonyEpisode = (title: string): boolean => {
   const lower = title.toLowerCase();
 
-  // Must contain "kill tony" somewhere
-  if (!lower.includes("kill tony")) {
+  // Must contain "kill tony" or the "KT #123" shorthand
+  const isKillTony =
+    lower.includes("kill tony") || /^kt\s*#\d+/i.test(title.trim());
+  if (!isKillTony) {
     return false;
   }
 
