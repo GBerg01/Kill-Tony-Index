@@ -4,6 +4,7 @@ export type YouTubeVideo = {
   publishedAt: string;
   durationSeconds: number;
   url: string;
+  description?: string;
 };
 
 export type FetchOptions = {
@@ -71,6 +72,50 @@ const fetchVideoDurations = async (
   }
 
   return durationMap;
+};
+
+const fetchVideoDescriptions = async (
+  videoIds: string[],
+  apiKey: string
+): Promise<Map<string, string>> => {
+  if (videoIds.length === 0) {
+    return new Map();
+  }
+
+  const chunks: string[][] = [];
+  for (let i = 0; i < videoIds.length; i += 50) {
+    chunks.push(videoIds.slice(i, i + 50));
+  }
+
+  const descriptionMap = new Map<string, string>();
+
+  for (const chunk of chunks) {
+    const params = new URLSearchParams({
+      key: apiKey,
+      part: "snippet",
+      id: chunk.join(","),
+    });
+
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`);
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch descriptions for batch of ${chunk.length} videos`);
+      continue;
+    }
+
+    const payload = (await response.json()) as {
+      items: Array<{ id: string; snippet?: { description?: string } }>;
+    };
+
+    for (const item of payload.items) {
+      if (!item.id) {
+        continue;
+      }
+      descriptionMap.set(item.id, item.snippet?.description ?? "");
+    }
+  }
+
+  return descriptionMap;
 };
 
 /**
@@ -175,9 +220,15 @@ export const fetchRecentVideos = async (options: FetchOptions = {}): Promise<You
     apiKey
   );
 
+  const descriptionMap = await fetchVideoDescriptions(
+    videosToProcess.map((v) => v.id),
+    apiKey
+  );
+
   return videosToProcess.map((video) => ({
     ...video,
     durationSeconds: durationMap.get(video.id) ?? 0,
+    description: descriptionMap.get(video.id) ?? "",
   }));
 };
 

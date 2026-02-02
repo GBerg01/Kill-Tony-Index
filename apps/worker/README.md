@@ -6,10 +6,11 @@ The worker ingests Kill Tony episodes from YouTube and extracts performance data
 
 1. **Episode Discovery** — Fetch videos from the Kill Tony YouTube channel
 2. **Episode Filtering** — Filter to only Kill Tony episodes (skip clips, compilations)
-3. **Transcript Retrieval** — Fetch auto-generated captions from YouTube (optional fallback service)
-4. **Performance Extraction** — Pattern match contestant intros in transcripts
-5. **Confidence Scoring** — Score extractions based on pattern quality
-6. **Database Persistence** — Upsert episodes, contestants, and performances
+3. **Chapter Timestamp Extraction** — Parse YouTube description chapters when available
+4. **Timecoded Transcript Retrieval** — Pull captions that already include timestamps (VTT/SRT), with a fallback that preserves timing
+5. **Performance Extraction** — Detect set starts from chapters and timecoded captions (heuristics + LLM disambiguation)
+6. **Confidence Scoring** — Score extractions based on pattern quality
+7. **Database Persistence** — Upsert episodes, contestants, and performances
 
 ## Setup
 
@@ -71,7 +72,7 @@ Kill Tony Index Worker
 Mode: recent
 Max videos: 50
 
-Step 1/4: Fetching videos from YouTube...
+Step 1/5: Fetching videos from YouTube...
 Fetched page 1: 50 videos (total: 50)
 ...
 
@@ -83,9 +84,49 @@ Performances: 312
 Unique contestants: 287
 ```
 
-## How Performance Extraction Works
+## How Performance Extraction Works (updated approach)
 
-The worker looks for common Kill Tony intro patterns in transcripts:
+The worker relies on **timecoded transcripts** (captions with timestamps) to generate precise deep links.
+Plain text transcripts without timing are not sufficient to produce consistent `?t=___s` links.
+
+When YouTube chapters are present in the video description, the worker uses those timestamps first
+and merges them with caption-derived detections for coverage.
+
+### Why the old transcript-only approach fails
+
+KillTonyDB’s creator noted they used AI to automate episode analysis. To generate **exact** set-start
+timestamps at scale, you must have a transcript with timing (or an equivalent alignment step). A model
+can identify *who* spoke in a transcript, but cannot reliably infer *when* a moment happened without
+time anchors.
+
+### The most likely pipeline (and why it matches the data)
+
+1) **Timed captions (VTT/SRT) from YouTube** *(most common)*
+- Pull the video’s caption track, which contains start/end timestamps for every chunk.
+- Scan for set-start cues (e.g., “your next comedian…”, “put your hands together for…”).
+- Map the detected caption timestamp → seconds → `?t=___s`.
+
+Why this fits:
+- Produces exact second-level links like KillTonyDB uses.
+- Scales across the catalog.
+- Stays consistent across episodes with similar structure.
+
+2) **Chapters/timestamps in the YouTube description** *(sometimes available)*
+- Parse description timestamps with regex.
+- Map chapter lines to performers.
+- Use those timestamps directly.
+
+3) **Community timestamp sources + AI cleanup**
+- Scrape an existing timestamp index.
+- Normalize names, dedupe entries, and generate summaries via AI.
+
+### What the pipeline is probably *not* doing
+- **Not** deriving timestamps from a plain-text transcript (no time anchors).
+- **Not** using the YouTube Data API to pull captions for arbitrary videos (restricted unless you own the content).
+
+### Stage 1: Heuristic candidate finder
+
+Scan the timecoded text for patterns that indicate a new set:
 
 - "give it up for [name]"
 - "please welcome [name]"
@@ -94,10 +135,24 @@ The worker looks for common Kill Tony intro patterns in transcripts:
 - "your next comedian [name]"
 - etc.
 
-Each extraction gets a confidence score (0.0-1.0) based on:
-- Pattern match strength
-- Name format (multi-word names score higher)
-- Context length
+Also scan for:
+- “bucket pull #”
+- “make some noise for”
+- Known lineup names, if already available
+
+### Stage 2: LLM disambiguation + best timestamp selection
+
+For each candidate, pass a small caption window (±30s) to the model and ask it to:
+- Confirm this is a set start (not a later callback).
+- Identify the performer being introduced.
+- Choose the best start timestamp (intro moment vs. first joke).
+
+### Why this matters for Kill Tony
+
+The “start of set” isn’t always the first word a comedian says:
+- There’s often an intro and crowd noise.
+- Tony might talk about them before they speak.
+- KillTonyDB’s links look keyed to the **intro moment**, not necessarily the first line of the set.
 
 ## Troubleshooting
 
@@ -108,7 +163,7 @@ Each extraction gets a confidence score (0.0-1.0) based on:
 **No transcripts:**
 - Some videos may not have auto-generated captions
 - The transcript service may be rate limiting requests
-- Enable the fallback transcription service to generate timestamps from audio
+- Enable the fallback transcription service to generate timecoded segments from audio
 
 **Few performances extracted:**
 - Transcripts may not capture intro phrases accurately
