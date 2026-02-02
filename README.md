@@ -37,6 +37,7 @@ The core unit is a performance, which links a contestant to an episode and inclu
 - `docs/ARCHITECTURE.md`: system overview, routing plan, and API boundaries.
 - `docs/SCHEMA.md`: entity definitions and frontend data contract stubs.
 - `docs/PROJECT_LOG.md`: decision log and project scaffolding notes.
+- `docs/LOCAL_SETUP.md`: local setup checklist, testing, and worker flow validation.
 
 ## Next steps
 
