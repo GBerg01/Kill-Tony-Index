@@ -1,7 +1,7 @@
 import type { YouTubeVideo } from "../sources/youtube";
 import type { TranscriptFetchResult, TranscriptSegment } from "../sources/transcripts";
 
-import { fetchTranscript } from "../sources/transcripts";
+import { fetchTranscript, isTranscriptUnavailableMessage } from "../sources/transcripts";
 
 export type EpisodeTranscriptMap = Map<string, TranscriptSegment[]>;
 
@@ -51,13 +51,28 @@ export const fetchEpisodeTranscripts = async (
           });
           return { videoId: video.id, result };
         } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (isTranscriptUnavailableMessage(message)) {
+            if (verbose) {
+              console.info(`Transcript unavailable for ${video.id}: ${message}`);
+            }
+            return {
+              videoId: video.id,
+              result: {
+                segments: [] as TranscriptSegment[],
+                status: "missing",
+                reason: message,
+              } satisfies TranscriptFetchResult,
+            };
+          }
+
           console.warn(`Transcript fetch failed for ${video.id}:`, error);
           return {
             videoId: video.id,
             result: {
               segments: [] as TranscriptSegment[],
               status: "error",
-              reason: error instanceof Error ? error.message : String(error),
+              reason: message,
             } satisfies TranscriptFetchResult,
           };
         }
