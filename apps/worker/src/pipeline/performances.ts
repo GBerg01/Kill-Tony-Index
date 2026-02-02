@@ -34,12 +34,14 @@ const MENTION_PATTERNS: Array<{ pattern: RegExp; baseConfidence: number }> = [
   { pattern: /coming to the stage[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.88 },
   { pattern: /from the bucket[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.86 },
   { pattern: /our next bucket pull[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.86 },
+  { pattern: /bucket pull(?:\s*#\s*\d+)?[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.84 },
   { pattern: /first[- ]time performer[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.85 },
 
   // Medium confidence - generic intros
   { pattern: /next up[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.82 },
   { pattern: /here['']?s ([^.!?,]+)/i, baseConfidence: 0.78 },
   { pattern: /it['']?s ([^.!?,]+)/i, baseConfidence: 0.70 },
+  { pattern: /make some noise for ([^.!?,]+)/i, baseConfidence: 0.80 },
 
   // Lower confidence - may catch regulars
   { pattern: /ladies and gentlemen[,:]?\s*([^.!?,]+)/i, baseConfidence: 0.75 },
@@ -199,4 +201,53 @@ export const extractPerformances = (
   }
 
   return performances;
+};
+
+const buildKey = (performance: ExtractedPerformance): string =>
+  `${performance.episodeYoutubeId}:${performance.contestantName.toLowerCase()}`;
+
+export const mergePerformances = (
+  chapterPerformances: ExtractedPerformance[],
+  transcriptPerformances: ExtractedPerformance[]
+): ExtractedPerformance[] => {
+  const merged: ExtractedPerformance[] = [];
+  const byKey = new Map<string, ExtractedPerformance[]>();
+
+  for (const performance of [...chapterPerformances, ...transcriptPerformances]) {
+    const key = buildKey(performance);
+    const existing = byKey.get(key) ?? [];
+    existing.push(performance);
+    byKey.set(key, existing);
+  }
+
+  for (const performances of byKey.values()) {
+    performances.sort((a, b) => a.startSeconds - b.startSeconds);
+    const deduped: ExtractedPerformance[] = [];
+
+    for (const performance of performances) {
+      const last = deduped[deduped.length - 1];
+      if (!last) {
+        deduped.push(performance);
+        continue;
+      }
+
+      if (Math.abs(performance.startSeconds - last.startSeconds) <= 90) {
+        const preferred =
+          performance.confidence > last.confidence ? performance : last;
+        deduped[deduped.length - 1] = preferred;
+        continue;
+      }
+
+      deduped.push(performance);
+    }
+
+    merged.push(...deduped);
+  }
+
+  return merged.sort((a, b) => {
+    if (a.episodeYoutubeId === b.episodeYoutubeId) {
+      return a.startSeconds - b.startSeconds;
+    }
+    return a.episodeYoutubeId.localeCompare(b.episodeYoutubeId);
+  });
 };

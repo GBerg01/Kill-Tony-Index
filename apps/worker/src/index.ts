@@ -1,5 +1,6 @@
 import { extractEpisodes } from "./pipeline/extract";
-import { extractPerformances } from "./pipeline/performances";
+import { extractPerformances, mergePerformances } from "./pipeline/performances";
+import { extractPerformancesFromChapters } from "./pipeline/chapters";
 import { persistEpisodes, persistPerformances } from "./pipeline/persist";
 import { fetchEpisodeTranscripts } from "./pipeline/transcripts";
 import { fetchRecentVideos, fetchAllVideos } from "./sources/youtube";
@@ -72,7 +73,7 @@ const run = async () => {
   console.info("");
 
   // Step 1: Fetch videos from YouTube
-  console.info("Step 1/4: Fetching videos from YouTube...");
+  console.info("Step 1/5: Fetching videos from YouTube...");
   const videos = mode === "full"
     ? await fetchAllVideos(true)
     : await fetchRecentVideos({ maxVideos, verbose: true });
@@ -86,7 +87,7 @@ const run = async () => {
   console.info("");
 
   // Step 2: Extract episodes (filter Kill Tony episodes and parse metadata)
-  console.info("Step 2/4: Extracting episode metadata...");
+  console.info("Step 2/5: Extracting episode metadata...");
   const episodes = extractEpisodes(videos);
   console.info(`Kill Tony episodes identified: ${episodes.length}`);
 
@@ -94,20 +95,42 @@ const run = async () => {
   console.info(`Episodes with episode number: ${withEpisodeNumber}`);
   console.info("");
 
-  // Step 3: Fetch transcripts
-  console.info("Step 3/4: Fetching transcripts...");
+  const episodeVideoIds = new Set(episodes.map((episode) => episode.youtubeId));
+  const episodeVideos = videos.filter((video) => episodeVideoIds.has(video.id));
+
+  // Step 3: Extract performances from chapters (description timestamps)
+  console.info("Step 3/5: Extracting chapter timestamps...");
+  const chapterPerformances = extractPerformancesFromChapters(episodeVideos);
+  console.info(`Chapter performances extracted: ${chapterPerformances.length}`);
+  console.info("");
+
+  // Step 4: Fetch transcripts
+  console.info("Step 4/5: Fetching transcripts...");
   const transcriptsByVideo = await fetchEpisodeTranscripts(
-    episodes.map((e) => ({ id: e.youtubeId, title: e.title, publishedAt: e.publishedAt, durationSeconds: e.durationSeconds, url: e.youtubeUrl })),
+    episodes.map((e) => ({
+      id: e.youtubeId,
+      title: e.title,
+      publishedAt: e.publishedAt,
+      durationSeconds: e.durationSeconds,
+      url: e.youtubeUrl,
+    })),
     { concurrency: 5, verbose: true }
   );
   console.info("");
 
-  // Step 4: Extract performances from transcripts
-  console.info("Step 4/4: Extracting performances...");
-  const performances = extractPerformances(
-    episodes.map((e) => ({ id: e.youtubeId, title: e.title, publishedAt: e.publishedAt, durationSeconds: e.durationSeconds, url: e.youtubeUrl })),
+  // Step 5: Extract performances from transcripts + merge with chapters
+  console.info("Step 5/5: Extracting performances...");
+  const transcriptPerformances = extractPerformances(
+    episodes.map((e) => ({
+      id: e.youtubeId,
+      title: e.title,
+      publishedAt: e.publishedAt,
+      durationSeconds: e.durationSeconds,
+      url: e.youtubeUrl,
+    })),
     transcriptsByVideo
   );
+  const performances = mergePerformances(chapterPerformances, transcriptPerformances);
   console.info(`Total performances extracted: ${performances.length}`);
 
   const avgPerEpisode = episodes.length > 0 ? (performances.length / episodes.length).toFixed(1) : 0;

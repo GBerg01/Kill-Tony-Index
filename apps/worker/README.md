@@ -6,10 +6,11 @@ The worker ingests Kill Tony episodes from YouTube and extracts performance data
 
 1. **Episode Discovery** — Fetch videos from the Kill Tony YouTube channel
 2. **Episode Filtering** — Filter to only Kill Tony episodes (skip clips, compilations)
-3. **Timecoded Transcript Retrieval** — Pull captions that already include timestamps (VTT/SRT), with a fallback that preserves timing
-4. **Performance Extraction** — Detect set starts from timecoded captions (heuristics + LLM disambiguation)
-5. **Confidence Scoring** — Score extractions based on pattern quality
-6. **Database Persistence** — Upsert episodes, contestants, and performances
+3. **Chapter Timestamp Extraction** — Parse YouTube description chapters when available
+4. **Timecoded Transcript Retrieval** — Pull captions that already include timestamps (VTT/SRT), with a fallback that preserves timing
+5. **Performance Extraction** — Detect set starts from chapters and timecoded captions (heuristics + LLM disambiguation)
+6. **Confidence Scoring** — Score extractions based on pattern quality
+7. **Database Persistence** — Upsert episodes, contestants, and performances
 
 ## Setup
 
@@ -71,7 +72,7 @@ Kill Tony Index Worker
 Mode: recent
 Max videos: 50
 
-Step 1/4: Fetching videos from YouTube...
+Step 1/5: Fetching videos from YouTube...
 Fetched page 1: 50 videos (total: 50)
 ...
 
@@ -87,6 +88,9 @@ Unique contestants: 287
 
 The worker relies on **timecoded transcripts** (captions with timestamps) to generate precise deep links.
 Plain text transcripts without timing are not sufficient to produce consistent `?t=___s` links.
+
+When YouTube chapters are present in the video description, the worker uses those timestamps first
+and merges them with caption-derived detections for coverage.
 
 ### Why the old transcript-only approach fails
 
