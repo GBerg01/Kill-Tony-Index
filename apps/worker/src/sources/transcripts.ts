@@ -31,6 +31,9 @@ const transcriptUnavailablePatterns = [
   "No captions found",
   "No caption tracks",
 ];
+
+export const isTranscriptUnavailableMessage = (message: string): boolean =>
+  transcriptUnavailablePatterns.some((pattern) => message.includes(pattern));
 type FallbackResponse = {
   segments?: TranscriptSegment[];
   reason?: string;
@@ -295,7 +298,7 @@ export const fetchTranscript = async (
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const message = lastError.message;
-      if (transcriptUnavailablePatterns.some((pattern) => message.includes(pattern))) {
+      if (isTranscriptUnavailableMessage(message)) {
         if (verbose) {
           console.info(`Transcript unavailable for ${videoId}: ${message}`);
         }
