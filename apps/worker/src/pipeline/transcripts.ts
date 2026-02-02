@@ -24,6 +24,8 @@ export const fetchEpisodeTranscripts = async (
   const transcriptMap = new Map<string, TranscriptSegment[]>();
   const missingTranscripts: Array<{ videoId: string; reason?: string }> = [];
   const errorTranscripts: Array<{ videoId: string; reason?: string }> = [];
+  const enableFallback =
+    process.env.TRANSCRIPT_FALLBACK_ENABLED === "true" || Boolean(process.env.TRANSCRIPT_FALLBACK_URL);
 
   if (videos.length === 0) {
     return transcriptMap;
@@ -44,6 +46,8 @@ export const fetchEpisodeTranscripts = async (
             maxRetries: 3,
             retryDelayMs: 1000,
             verbose,
+            enableFallback,
+            videoDurationSeconds: video.durationSeconds,
           });
           return { videoId: video.id, result };
         } catch (error) {

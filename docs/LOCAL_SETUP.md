@@ -124,6 +124,7 @@ SELECT COUNT(*) FROM performances;
 - **`ECONNREFUSED 127.0.0.1:5432`** → database is not running; start it with `docker-compose up -d`.
 - **403/Invalid API key** → re-check `YOUTUBE_API_KEY` in `.env`.
 - **Worker finds zero performances** → some transcripts are sparse; check logs and consider increasing the batch size.
+- **Captions disabled** → enable the optional fallback transcription service to generate timestamps from audio.
 
 ## 9) Shutdown
 
