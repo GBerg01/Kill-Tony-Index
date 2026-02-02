@@ -51,6 +51,19 @@ const run = async () => {
     return;
   }
 
+  const missingEnvVars = ["YOUTUBE_API_KEY", "YOUTUBE_CHANNEL_ID"].filter(
+    (key) => !process.env[key]
+  );
+
+  if (missingEnvVars.length > 0) {
+    console.info(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+    console.info("Set them in your .env file at the repo root (see apps/worker/README.md).");
+    console.info("Example:");
+    console.info("  YOUTUBE_API_KEY=your-youtube-api-key");
+    console.info("  YOUTUBE_CHANNEL_ID=UCwzCMiicL-hBUzyjWiJaseg");
+    return;
+  }
+
   console.info("=".repeat(60));
   console.info("Kill Tony Index Worker");
   console.info("=".repeat(60));
