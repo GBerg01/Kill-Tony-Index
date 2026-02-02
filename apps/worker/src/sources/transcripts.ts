@@ -5,20 +5,36 @@ export type TranscriptSegment = {
 };
 
 export type TranscriptFetchStatus = "ok" | "missing" | "error";
+export type TranscriptSource = "youtube" | "fallback";
 
 export type TranscriptFetchResult = {
   segments: TranscriptSegment[];
   status: TranscriptFetchStatus;
   reason?: string;
+  source?: TranscriptSource;
 };
 
 type TranscriptOptions = {
   maxRetries?: number;
   retryDelayMs?: number;
   verbose?: boolean;
+  videoDurationSeconds?: number;
+  enableFallback?: boolean;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const transcriptUnavailablePatterns = [
+  "Transcript is disabled",
+  "No transcript",
+  "Subtitles are disabled",
+  "Could not retrieve a transcript",
+  "No captions found",
+  "No caption tracks",
+];
+type FallbackResponse = {
+  segments?: TranscriptSegment[];
+  reason?: string;
+};
 
 const decodeEntities = (text: string): string =>
   text
@@ -152,6 +168,87 @@ const parseTimedTextXml = (xml: string): TranscriptSegment[] => {
   return segments;
 };
 
+const resolveFallbackMaxDuration = (): number | null => {
+  const raw = process.env.TRANSCRIPT_FALLBACK_MAX_DURATION_SECONDS;
+  if (!raw) {
+    return null;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+};
+
+const maybeFallbackTranscript = async (
+  videoId: string,
+  options: TranscriptOptions,
+  reason: string
+): Promise<TranscriptFetchResult | null> => {
+  if (!options.enableFallback) {
+    return null;
+  }
+
+  const fallbackUrl = process.env.TRANSCRIPT_FALLBACK_URL;
+  if (!fallbackUrl) {
+    return null;
+  }
+
+  const maxDurationSeconds = resolveFallbackMaxDuration();
+  if (
+    maxDurationSeconds &&
+    typeof options.videoDurationSeconds === "number" &&
+    options.videoDurationSeconds > maxDurationSeconds
+  ) {
+    if (options.verbose) {
+      console.info(
+        `Skipping fallback transcript for ${videoId}: duration ${options.videoDurationSeconds}s exceeds ${maxDurationSeconds}s`
+      );
+    }
+    return null;
+  }
+
+  try {
+    const apiKey = process.env.TRANSCRIPT_FALLBACK_API_KEY;
+    const response = await fetch(fallbackUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify({
+        videoId,
+        videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        durationSeconds: options.videoDurationSeconds,
+        reason,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Fallback transcript HTTP ${response.status}`);
+    }
+
+    const payload = (await response.json()) as FallbackResponse;
+    const segments = Array.isArray(payload.segments) ? payload.segments : [];
+    if (segments.length === 0) {
+      return { segments: [], status: "missing", reason: payload.reason ?? reason, source: "fallback" };
+    }
+    return {
+      segments,
+      status: "ok",
+      reason: payload.reason ?? "fallback",
+      source: "fallback",
+    };
+  } catch (error) {
+    if (options.verbose) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Fallback transcript failed for ${videoId}: ${message}`);
+    }
+  }
+
+  return null;
+};
+
 /**
  * Fetch transcript by scraping YouTube's caption tracks directly.
  */
@@ -169,7 +266,8 @@ export const fetchTranscript = async (
         if (verbose) {
           console.info(`No captions found for ${videoId}`);
         }
-        return { segments: [], status: "missing", reason: "No captions found" };
+        const fallback = await maybeFallbackTranscript(videoId, options, "No captions found");
+        return fallback ?? { segments: [], status: "missing", reason: "No captions found" };
       }
 
       const response = await fetch(captionUrl);
@@ -185,12 +283,25 @@ export const fetchTranscript = async (
       }
 
       if (segments.length === 0) {
-        return { segments, status: "missing", reason: "Empty transcript payload" };
+        const fallback = await maybeFallbackTranscript(
+          videoId,
+          options,
+          "Empty transcript payload"
+        );
+        return fallback ?? { segments, status: "missing", reason: "Empty transcript payload" };
       }
 
-      return { segments, status: "ok" };
+      return { segments, status: "ok", source: "youtube" };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
+      const message = lastError.message;
+      if (transcriptUnavailablePatterns.some((pattern) => message.includes(pattern))) {
+        if (verbose) {
+          console.info(`Transcript unavailable for ${videoId}: ${message}`);
+        }
+        const fallback = await maybeFallbackTranscript(videoId, options, message);
+        return fallback ?? { segments: [], status: "missing", reason: message };
+      }
 
       if (attempt < maxRetries) {
         if (verbose) {

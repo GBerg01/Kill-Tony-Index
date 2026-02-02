@@ -6,7 +6,7 @@ The worker ingests Kill Tony episodes from YouTube and extracts performance data
 
 1. **Episode Discovery** — Fetch videos from the Kill Tony YouTube channel
 2. **Episode Filtering** — Filter to only Kill Tony episodes (skip clips, compilations)
-3. **Transcript Retrieval** — Fetch auto-generated captions via youtubetranscript.com
+3. **Transcript Retrieval** — Fetch auto-generated captions from YouTube (optional fallback service)
 4. **Performance Extraction** — Pattern match contestant intros in transcripts
 5. **Confidence Scoring** — Score extractions based on pattern quality
 6. **Database Persistence** — Upsert episodes, contestants, and performances
@@ -20,8 +20,15 @@ The worker ingests Kill Tony episodes from YouTube and extracts performance data
    YOUTUBE_API_KEY=your-youtube-api-key
    YOUTUBE_CHANNEL_ID=UCwzCMiicL-hBUzyjWiJaseg
    ```
-3. Start the database: `docker-compose up -d`
-4. Run migrations: `cd packages/db && npm run prisma:migrate`
+3. (Optional) Enable a fallback transcription service when captions are disabled:
+   ```
+   TRANSCRIPT_FALLBACK_ENABLED=true
+   TRANSCRIPT_FALLBACK_URL=https://your-transcriber.example.com/transcripts
+   TRANSCRIPT_FALLBACK_API_KEY=your-service-api-key
+   TRANSCRIPT_FALLBACK_MAX_DURATION_SECONDS=10800
+   ```
+4. Start the database: `docker-compose up -d`
+5. Run migrations: `cd packages/db && npm run prisma:migrate`
 
 ## Usage
 
@@ -101,6 +108,7 @@ Each extraction gets a confidence score (0.0-1.0) based on:
 **No transcripts:**
 - Some videos may not have auto-generated captions
 - The transcript service may be rate limiting requests
+- Enable the fallback transcription service to generate timestamps from audio
 
 **Few performances extracted:**
 - Transcripts may not capture intro phrases accurately
