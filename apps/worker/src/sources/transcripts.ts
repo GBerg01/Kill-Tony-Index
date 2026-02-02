@@ -4,6 +4,14 @@ export type TranscriptSegment = {
   duration: number;
 };
 
+export type TranscriptFetchStatus = "ok" | "missing" | "error";
+
+export type TranscriptFetchResult = {
+  segments: TranscriptSegment[];
+  status: TranscriptFetchStatus;
+  reason?: string;
+};
+
 type TranscriptOptions = {
   maxRetries?: number;
   retryDelayMs?: number;
@@ -150,7 +158,7 @@ const parseTimedTextXml = (xml: string): TranscriptSegment[] => {
 export const fetchTranscript = async (
   videoId: string,
   options: TranscriptOptions = {}
-): Promise<TranscriptSegment[]> => {
+): Promise<TranscriptFetchResult> => {
   const { maxRetries = 3, retryDelayMs = 1000, verbose = false } = options;
   let lastError: Error | null = null;
 
@@ -161,7 +169,7 @@ export const fetchTranscript = async (
         if (verbose) {
           console.info(`No captions found for ${videoId}`);
         }
-        return [];
+        return { segments: [], status: "missing", reason: "No captions found" };
       }
 
       const response = await fetch(captionUrl);
@@ -176,7 +184,11 @@ export const fetchTranscript = async (
         console.info(`Fetched ${segments.length} transcript segments for ${videoId}`);
       }
 
-      return segments;
+      if (segments.length === 0) {
+        return { segments, status: "missing", reason: "Empty transcript payload" };
+      }
+
+      return { segments, status: "ok" };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -197,5 +209,5 @@ export const fetchTranscript = async (
     );
   }
 
-  return [];
+  return { segments: [], status: "error", reason: lastError?.message };
 };

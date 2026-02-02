@@ -1,5 +1,5 @@
 import type { YouTubeVideo } from "../sources/youtube";
-import type { TranscriptSegment } from "../sources/transcripts";
+import type { TranscriptFetchResult, TranscriptSegment } from "../sources/transcripts";
 
 import { fetchTranscript } from "../sources/transcripts";
 
@@ -22,6 +22,8 @@ export const fetchEpisodeTranscripts = async (
 ): Promise<EpisodeTranscriptMap> => {
   const { concurrency = 5, verbose = true } = options;
   const transcriptMap = new Map<string, TranscriptSegment[]>();
+  const missingTranscripts: Array<{ videoId: string; reason?: string }> = [];
+  const errorTranscripts: Array<{ videoId: string; reason?: string }> = [];
 
   if (videos.length === 0) {
     return transcriptMap;
@@ -38,21 +40,33 @@ export const fetchEpisodeTranscripts = async (
     const results = await Promise.all(
       batch.map(async (video) => {
         try {
-          const segments = await fetchTranscript(video.id, {
+          const result = await fetchTranscript(video.id, {
             maxRetries: 3,
             retryDelayMs: 1000,
             verbose,
           });
-          return { videoId: video.id, segments };
+          return { videoId: video.id, result };
         } catch (error) {
           console.warn(`Transcript fetch failed for ${video.id}:`, error);
-          return { videoId: video.id, segments: [] as TranscriptSegment[] };
+          return {
+            videoId: video.id,
+            result: {
+              segments: [] as TranscriptSegment[],
+              status: "error",
+              reason: error instanceof Error ? error.message : String(error),
+            } satisfies TranscriptFetchResult,
+          };
         }
       })
     );
 
-    for (const { videoId, segments } of results) {
-      transcriptMap.set(videoId, segments);
+    for (const { videoId, result } of results) {
+      transcriptMap.set(videoId, result.segments);
+      if (result.status === "missing") {
+        missingTranscripts.push({ videoId, reason: result.reason });
+      } else if (result.status === "error") {
+        errorTranscripts.push({ videoId, reason: result.reason });
+      }
     }
 
     if (verbose && i + concurrency < videos.length) {
@@ -70,6 +84,24 @@ export const fetchEpisodeTranscripts = async (
   const withTranscripts = Array.from(transcriptMap.values()).filter((s) => s.length > 0).length;
   if (verbose) {
     console.info(`Transcripts: ${withTranscripts}/${videos.length} videos have transcripts`);
+    if (missingTranscripts.length > 0) {
+      const sample = missingTranscripts.slice(0, 5);
+      console.info(
+        `Missing transcripts: ${missingTranscripts.length} videos (showing ${sample.length})`
+      );
+      sample.forEach((entry) => {
+        console.info(`  - ${entry.videoId}${entry.reason ? ` (${entry.reason})` : ""}`);
+      });
+    }
+    if (errorTranscripts.length > 0) {
+      const sample = errorTranscripts.slice(0, 5);
+      console.warn(
+        `Transcript errors: ${errorTranscripts.length} videos (showing ${sample.length})`
+      );
+      sample.forEach((entry) => {
+        console.warn(`  - ${entry.videoId}${entry.reason ? ` (${entry.reason})` : ""}`);
+      });
+    }
   }
 
   return transcriptMap;
