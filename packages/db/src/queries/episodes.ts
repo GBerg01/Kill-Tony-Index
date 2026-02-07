@@ -26,6 +26,7 @@ export const listEpisodes = async (
       `SELECT id,
               youtube_id AS "youtubeId",
               title,
+              episode_number AS "episodeNumber",
               published_at AS "publishedAt",
               duration_seconds AS "durationSeconds",
               youtube_url AS "youtubeUrl"
@@ -50,6 +51,7 @@ export const getEpisodeById = async (pool: Pool, id: string): Promise<Episode | 
     `SELECT id,
             youtube_id AS "youtubeId",
             title,
+            episode_number AS "episodeNumber",
             published_at AS "publishedAt",
             duration_seconds AS "durationSeconds",
             youtube_url AS "youtubeUrl"

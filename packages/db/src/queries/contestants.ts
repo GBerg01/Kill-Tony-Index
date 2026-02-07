@@ -77,6 +77,7 @@ export type PerformanceWithEpisode = {
   id: string;
   episodeId: string;
   episodeTitle: string;
+  episodeNumber: number | null;
   episodePublishedAt: string;
   youtubeUrl: string;
   startSeconds: number;
@@ -95,6 +96,7 @@ export const getPerformancesByContestantId = async (
     `SELECT p.id,
             p.episode_id AS "episodeId",
             e.title AS "episodeTitle",
+            e.episode_number AS "episodeNumber",
             e.published_at AS "episodePublishedAt",
             e.youtube_url AS "youtubeUrl",
             p.start_seconds AS "startSeconds",
@@ -107,7 +109,7 @@ export const getPerformancesByContestantId = async (
      JOIN episodes e ON e.id = p.episode_id
      LEFT JOIN votes v ON v.performance_id = p.id
      WHERE p.contestant_id = $1
-     GROUP BY p.id, e.title, e.published_at, e.youtube_url
+     GROUP BY p.id, e.title, e.episode_number, e.published_at, e.youtube_url
      ORDER BY "averageRating" DESC, "ratingCount" DESC, e.published_at DESC NULLS LAST`,
     [contestantId]
   );
